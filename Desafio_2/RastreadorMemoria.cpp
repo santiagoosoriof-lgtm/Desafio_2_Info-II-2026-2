@@ -2,12 +2,12 @@
 #include <RastreadorMemoria.h>
 using namespace std;
 
-    // Inicialización de variables estáticas
+    // Inicialización de variables estaticas
     long RastreadorMemoria::iteracionesTotales = 0;
     size_t RastreadorMemoria::memoriaAsignadaBytes = 0;
     string RastreadorMemoria::libreriasEjecutadas = "";
 
-    // Reinicia contadores y define qué librerías/módulos se usarán en la funcionalidad
+    // Reinicia contadores y define que librerias/modulos se usaran en la funcionalidad
     void RastreadorMemoria::IniciarSegmento(const string& modulosYLibrerias) {
         iteracionesTotales = 0;
         libreriasEjecutadas = modulosYLibrerias;
