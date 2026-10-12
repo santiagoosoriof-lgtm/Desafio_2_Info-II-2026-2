@@ -2,6 +2,7 @@
 #define MENSAJE_H
 
 #include <string>
+#include <cstddef>
 using namespace std;
 
 
@@ -13,7 +14,7 @@ private:
     string texto;
     long fechaenvio;
     bool leido;
-    int longitudTexto;
+    size_t bytesOcupados;
 
 public:
     Mensaje();
@@ -26,7 +27,7 @@ public:
     string getTexto() const;
     long getFechaEnvio() const;
     bool estaleido() const;
-    int getLongitudTexto() const;
+    size_t getMemoria() const;  //Nos da la memoria ocupada por el objeto
 
     void setLeido(bool estado);
 };

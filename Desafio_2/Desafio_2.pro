@@ -8,6 +8,7 @@ CONFIG += c++17 cmdline
 
 SOURCES += \
         RastreadorMemoria.cpp \
+        foto.cpp \
         main.cpp \
         mensaje.cpp
 
@@ -18,4 +19,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     RastreadorMemoria.h \
+    foto.h \
     mensaje.h
