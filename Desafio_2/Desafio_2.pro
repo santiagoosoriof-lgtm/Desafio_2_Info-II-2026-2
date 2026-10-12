@@ -9,6 +9,8 @@ CONFIG += c++17 cmdline
 SOURCES += \
         RastreadorMemoria.cpp \
         foto.cpp \
+        RedSocial.cpp \
+        Usuario.cpp \
         main.cpp \
         mensaje.cpp
 
@@ -18,6 +20,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    ListaDinamica.h \
     RastreadorMemoria.h \
     foto.h \
     mensaje.h
