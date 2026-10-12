@@ -14,6 +14,7 @@ private:
     string texto;
     long fechaenvio;
     bool leido;
+    //Atributo de auditoria
     size_t bytesOcupados;
 
 public:
@@ -27,9 +28,12 @@ public:
     string getTexto() const;
     long getFechaEnvio() const;
     bool estaleido() const;
-    size_t getMemoria() const;  //Nos da la memoria ocupada por el objeto
-
     void setLeido(bool estado);
+
+    //getters para auditoria de memoria y librerias
+    size_t getMemoria() const;  //Nos da la memoria ocupada por el objeto
+    static const char* getLibreriasUsadas();
+
 };
 
 #endif // MENSAJE_H

@@ -21,7 +21,7 @@ Mensaje::Mensaje(const string& emisor, const string& receptor, const string& use
     int longitudTexto = 0;
 
     //el texto ingresado por el usuario se recorta si es muy largo y se asigna un valor al atributo longitud
-    while(usertexto[longitudTexto] != '\0' && longitudTexto < 256){
+    while(usertexto[longitudTexto] != '\0' && longitudTexto < 512){
         this ->texto += usertexto[longitudTexto];
         longitudTexto++;
     }
@@ -37,6 +37,8 @@ string Mensaje::getReceptor() const{return this->receptor;}
 string Mensaje::getTexto() const{return this->texto;}
 long Mensaje::getFechaEnvio() const{return this->fechaenvio;}
 bool Mensaje::estaleido() const{return this->leido;}
-size_t Mensaje::getMemoria() const{return this->bytesOcupados;}
-
 void Mensaje::setLeido(bool estado){this->leido=estado;}
+
+//Implementacion getters de auditoria
+size_t Mensaje::getMemoria() const{return this->bytesOcupados;}
+const char* Mensaje::getLibreriasUsadas(){return "mensaje.h, <string>, <cstdef> ";}

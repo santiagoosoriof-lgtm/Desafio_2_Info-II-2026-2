@@ -9,6 +9,7 @@ private:
     ListaDinamica<Usuario*> usuarios; // Lista de punteros a todos los usuarios
     bool** matrizAmistad;             // Matriz dinamica de adyacencia (bool**)
     int capacidadMaxima;
+    size_t bytesOcupados;
 
     void inicializarMatriz();
 
@@ -30,11 +31,17 @@ public:
     bool sonAmigos(const std::string& user1, const std::string& user2) const;
     int contarAmigosEnComun(const std::string& user1, const std::string& user2) const;
 
-    // Algoritmos asignados a Juan
+    // getters amigos y sugerencias
     ListaDinamica<Usuario*> obtenerMejoresAmigosSorteados(const std::string& username);
     ListaDinamica<Usuario*> obtenerSugerenciasK(const std::string& username, int k);
 
     int obtenerCantidadUsuarios() const;
+
+    //Metodos de auditoria de memoria
+    size_t getMemoria() const;
+    const char* getLibreriasUsadas();
+
+
 };
 
 #endif

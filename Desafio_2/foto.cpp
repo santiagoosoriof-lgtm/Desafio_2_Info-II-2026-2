@@ -12,6 +12,7 @@ Foto::Foto(string fechaCaptura, string rutaAbsoluta, int tamanoArchivoBytes){
     this->rutaAbsoluta = rutaAbsoluta;
     this-> tamanoArchivoBytes = tamanoArchivoBytes;
     this-> likes = 0;
+    this-> albumDueno = nullptr;
 
     int caracteresFecha = 0;
     while(fechaCaptura[caracteresFecha] != '\0'){
@@ -31,15 +32,20 @@ Foto::~Foto(){
 
 //Getters y setters
 
+
 string Foto::getFechaCaptura()const { return this->fechaCaptura;}
 string Foto::getRutaAbsoluta() const{return this->rutaAbsoluta;}
 int Foto::getTamanoBytes() const{return this->tamanoArchivoBytes;}
 int Foto::getLikes() const{return this->likes;}
-size_t Foto::getMemoria() const{return this -> bytesOcupados;}
+Album* Foto::getAlbumDueno() const{return albumDueno;}
 
 void Foto::setLike(){ this-> likes++;}
 void Foto::setUnlike(){
     if(this-> likes > 0){
-        this->likes--;
+        this->likes--;}
     }
-}
+void Foto::setAlbumDueno(Album *nuevoDueno){albumDueno= nuevoDueno;}
+
+// Implementacion getteres auditoria
+size_t Foto::getMemoria() const{return this -> bytesOcupados;}
+const char* Foto::getLibreriasUsadas(){return "foto.h, <string>, <cstddef>";}

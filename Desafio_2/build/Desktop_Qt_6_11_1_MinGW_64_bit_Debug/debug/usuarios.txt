@@ -1,0 +1,3 @@
+juan_perez;2000-05-10;juan@udea.edu.co;foto1.jpg;Medellin;Colombia;2026-10-01
+santiago_gomez;2001-08-15;santi@udea.edu.co;foto2.jpg;Envigado;Colombia;2026-10-02
+maria_lopez;1999-12-01;maria@udea.edu.co;foto3.jpg;Rionegro;Colombia;2026-10-03

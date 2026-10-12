@@ -1,15 +1,31 @@
 #include "Usuario.h"
+#include "RastreadorMemoria.h"
 
 // Constructor por defecto
 Usuario::Usuario()
     : username(""), fechaNacimiento(""), email(""), fotoPerfilRuta(""),
-    ciudad(""), pais(""), fechaInscripcion("") {}
+    ciudad(""), pais(""), fechaInscripcion(""), bytesOcupados(sizeof(Usuario)) {}
 
 // Constructor parametrizado
 Usuario::Usuario(std::string username, std::string fechaNacimiento, std::string email,
                  std::string fotoPerfilRuta, std::string ciudad, std::string pais, std::string fechaInscripcion)
     : username(username), fechaNacimiento(fechaNacimiento), email(email),
-    fotoPerfilRuta(fotoPerfilRuta), ciudad(ciudad), pais(pais), fechaInscripcion(fechaInscripcion) {}
+    fotoPerfilRuta(fotoPerfilRuta), ciudad(ciudad), pais(pais), fechaInscripcion(fechaInscripcion) {
+
+    int caracteresTotales = 0;
+    std::string campos[] = {username, fechaNacimiento, email, fotoPerfilRuta, ciudad, pais, fechaInscripcion};
+
+    for(int i = 0; i < 7; i++){
+        int j=0;
+        while(campos[i][j]!= '\0'){
+            caracteresTotales++;
+            j++;
+        }
+    }
+    this-> bytesOcupados = sizeof(Usuario) + caracteresTotales;
+
+}
+
 
 // Constructor de copia
 Usuario::Usuario(const Usuario& otro) {
@@ -21,11 +37,27 @@ Usuario::Usuario(const Usuario& otro) {
     pais = otro.pais;
     fechaInscripcion = otro.fechaInscripcion;
 
-    // Copiamos los punteros a amigos de la lista
+    // Copiamos los punteros a todas las listas del objeto
     for (int i = 0; i < otro.amigos.obtenerTamano(); i++) {
         amigos.agregarAlFinal(otro.amigos.obtener(i));
     }
+    for (int i = 0; i < otro.solicitudesPendientes.obtenerTamano(); i++) {
+        solicitudesPendientes.agregarAlFinal(otro.solicitudesPendientes.obtener(i));
+    }
+    for (int i = 0; i < otro.albumes.obtenerTamano(); i++) {
+        albumes.agregarAlFinal(otro.albumes.obtener(i));
+    }
+    for (int i = 0; i < otro.mensajesEnviados.obtenerTamano(); i++) {
+        mensajesEnviados.agregarAlFinal(otro.mensajesEnviados.obtener(i));
+    }
+    for (int i = 0; i < otro.mensajesRecibidos.obtenerTamano(); i++) {
+        mensajesRecibidos.agregarAlFinal(otro.mensajesRecibidos.obtener(i));
+    }
+
+    //  Asignamos el mismo tamaño en memoria que calculó el objeto original
+    this->bytesOcupados = otro.bytesOcupados;
 }
+
 
 // Destructor
 Usuario::~Usuario() {
@@ -40,6 +72,11 @@ std::string Usuario::getFotoPerfilRuta() const { return fotoPerfilRuta; }
 std::string Usuario::getCiudad() const { return ciudad; }
 std::string Usuario::getPais() const { return pais; }
 std::string Usuario::getFechaInscripcion() const { return fechaInscripcion; }
+
+// Getters de auditoria
+size_t Usuario::getMemoria() const{ return this->bytesOcupados;}
+const char* Usuario::getLibreriasUsadas(){
+    return "Usuario.h, ListaDinamica.h, mensaje.h, RastreadorMemoria.h, <string>, <cstddef>";}
 
 // Setters
 void Usuario::setFotoPerfilRuta(const std::string& ruta) { fotoPerfilRuta = ruta; }
@@ -62,6 +99,7 @@ void Usuario::agregarSolicitud(Usuario* solicitante) {
 bool Usuario::esAmigoDe(Usuario* otro) const {
     if (otro == nullptr) return false;
     for (int i = 0; i < amigos.obtenerTamano(); i++) {
+        RastreadorMemoria::RegistroIteracion();
         if (*amigos.obtener(i) == *otro) {
             return true;
         }

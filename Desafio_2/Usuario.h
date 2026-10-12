@@ -2,7 +2,9 @@
 #define USUARIO_H
 
 #include <string>
+#include <cstddef>
 #include "ListaDinamica.h"
+#include "mensaje.h"
 
 // Declaraciones adelantadas para evitar errores de inclusion circular
 class Album;
@@ -24,6 +26,9 @@ private:
     ListaDinamica<Album*> albumes;
     ListaDinamica<Mensaje*> mensajesEnviados;
     ListaDinamica<Mensaje*> mensajesRecibidos;
+
+    // Atributos de auditoria
+    size_t bytesOcupados;
 
 public:
     // Constructores
@@ -62,6 +67,10 @@ public:
     // Sobrecarga de Operadores == y != (Comparan por Username unico)
     bool operator==(const Usuario& otro) const;
     bool operator!=(const Usuario& otro) const;
+
+    //metodos de auditoria
+    static const char* getLibreriasUsadas();
+    size_t getMemoria() const;
 };
 
 #endif

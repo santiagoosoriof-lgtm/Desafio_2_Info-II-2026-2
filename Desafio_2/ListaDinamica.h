@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include "RastreadorMemoria.h"
 
 template <typename T>
 class Nodo {
@@ -37,6 +38,8 @@ public:
 
     // Agrega un elemento al final de la lista
     void agregarAlFinal(const T& elemento) {
+        RastreadorMemoria::RegistroAsignacionMemoria(sizeof(Nodo<T>));
+
         Nodo<T>* nuevo = new Nodo<T>(elemento);
         if (primero == nullptr) {
             primero = nuevo;
@@ -57,6 +60,7 @@ public:
         }
         Nodo<T>* actual = primero;
         for (int i = 0; i < indice; i++) {
+            RastreadorMemoria::RegistroIteracion();
             actual = actual->getSiguiente();
         }
         return actual->getDato();
@@ -71,6 +75,7 @@ public:
         }
         Nodo<T>* actual = primero;
         for (int i = 0; i < indice; i++) {
+            RastreadorMemoria::RegistroIteracion();
             actual = actual->getSiguiente();
         }
         return actual->getDato();
@@ -93,6 +98,7 @@ public:
         } else {
             Nodo<T>* actual = primero;
             for (int i = 0; i < indice - 1; i++) {
+                RastreadorMemoria::RegistroIteracion();
                 actual = actual->getSiguiente();
             }
             aBorrar = actual->getSiguiente();
@@ -101,8 +107,8 @@ public:
                 ultimo = actual;
             }
         }
-
-        delete aBorrar; // Liberación explícita de memoria
+        RastreadorMemoria::RegistroLiberacionMemoria(sizeof(Nodo<T>));
+        delete aBorrar; // Liberación de memoria
         tamano--;
         return true;
     }
@@ -120,10 +126,15 @@ public:
     void limpiar() {
         Nodo<T>* actual = primero;
         while (actual != nullptr) {
+            RastreadorMemoria::RegistroIteracion();
+
             Nodo<T>* siguiente = actual->getSiguiente();
+
+            RastreadorMemoria::RegistroLiberacionMemoria(sizeof(Nodo<T>));
             delete actual;
             actual = siguiente;
         }
+
         primero = nullptr;
         ultimo = nullptr;
         tamano = 0;

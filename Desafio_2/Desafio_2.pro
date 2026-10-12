@@ -8,6 +8,7 @@ CONFIG += c++17 cmdline
 
 SOURCES += \
         RastreadorMemoria.cpp \
+        album.cpp \
         foto.cpp \
         RedSocial.cpp \
         Usuario.cpp \
@@ -22,5 +23,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     ListaDinamica.h \
     RastreadorMemoria.h \
+    album.h \
     foto.h \
     mensaje.h
