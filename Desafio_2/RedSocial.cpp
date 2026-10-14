@@ -5,44 +5,18 @@
 #include <fstream>
 #include <sstream>
 
-// Constructor: Reserva memoria dinamica para la matriz bool**
+// Constructor: Ya no crea la matriz de un millon de ceros en RAM
 RedSocial::RedSocial(int capacidad) : capacidadMaxima(capacidad) {
-    matrizAmistad = new bool*[capacidadMaxima];
-    for (int i = 0; i < capacidadMaxima; i++) {
-        matrizAmistad[i] = new bool[capacidadMaxima];
-    }
-    inicializarMatriz();
-
-    //Calculo de memoria del objeto para la auditoria
-    size_t pesoMatrizPunteros = sizeof(bool*) * capacidadMaxima;
-    size_t pesoMatrizValores = sizeof(bool) * capacidadMaxima * capacidadMaxima;
-
-    this->bytesOcupados = sizeof(RedSocial) + pesoMatrizPunteros + pesoMatrizValores;
+    this->bytesOcupados = sizeof(RedSocial);
     RastreadorMemoria::RegistroAsignacionMemoria(this->bytesOcupados);
 }
 
-void RedSocial::inicializarMatriz() {
-    for (int i = 0; i < capacidadMaxima; i++) {
-        for (int j = 0; j < capacidadMaxima; j++) {
-            matrizAmistad[i][j] = false;
-        }
-    }
-}
-
-// Destructor: Libera la memoria de la matriz dinamica y de los usuarios
+// Destructor: Libera los usuarios sin necesidad de destruir matrices dinamicas pesadas
 RedSocial::~RedSocial() {
-
     RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
 
-    // Liberar cada fila de la matriz
-    for (int i = 0; i < capacidadMaxima; i++) {
-        delete[] matrizAmistad[i];
-    }
-    delete[] matrizAmistad;
-
-    // Liberar los objetos Usuario asignados en memoria
     for (int i = 0; i < usuarios.obtenerTamano(); i++) {
-        RastreadorMemoria::RegistroLiberacionMemoria(usuarios.obtener(i)->getMemoria()); //se borra el registro de la memoria ocupada por el objeto eliminado
+        RastreadorMemoria::RegistroLiberacionMemoria(usuarios.obtener(i)->getMemoria());
         delete usuarios.obtener(i);
     }
 }
@@ -52,7 +26,7 @@ bool RedSocial::agregarUsuario(Usuario* nuevoUsuario) {
         return false;
     }
     if (buscarUsuario(nuevoUsuario->getUsername()) != nullptr) {
-        return false; // Ya existe ese username
+        return false;
     }
     usuarios.agregarAlFinal(nuevoUsuario);
     return true;
@@ -78,17 +52,12 @@ int RedSocial::obtenerIndiceUsuario(const std::string& username) const {
     return -1;
 }
 
-// Registro de amistad bidireccional en la matriz bool**
+// Registro de amistad directamente en las listas de adyacencia de cada Usuario
 bool RedSocial::registrarAmistad(const std::string& user1, const std::string& user2) {
-    int idx1 = obtenerIndiceUsuario(user1);
-    int idx2 = obtenerIndiceUsuario(user2);
+    Usuario* u1 = buscarUsuario(user1);
+    Usuario* u2 = buscarUsuario(user2);
 
-    if (idx1 != -1 && idx2 != -1 && idx1 != idx2) {
-        matrizAmistad[idx1][idx2] = true;
-        matrizAmistad[idx2][idx1] = true;
-
-        Usuario* u1 = usuarios.obtener(idx1);
-        Usuario* u2 = usuarios.obtener(idx2);
+    if (u1 != nullptr && u2 != nullptr && u1 != u2) {
         u1->agregarAmigo(u2);
         u2->agregarAmigo(u1);
         return true;
@@ -97,30 +66,38 @@ bool RedSocial::registrarAmistad(const std::string& user1, const std::string& us
 }
 
 bool RedSocial::sonAmigos(const std::string& user1, const std::string& user2) const {
-    int idx1 = obtenerIndiceUsuario(user1);
-    int idx2 = obtenerIndiceUsuario(user2);
-    if (idx1 != -1 && idx2 != -1) {
-        return matrizAmistad[idx1][idx2];
+    RedSocial* self = const_cast<RedSocial*>(this);
+    Usuario* u1 = self->buscarUsuario(user1);
+    Usuario* u2 = self->buscarUsuario(user2);
+
+    if (u1 != nullptr && u2 != nullptr) {
+        return u1->esAmigoDe(u2);
     }
     return false;
 }
 
+// Contar amigos en comun de forma ultra eficiente (solo recorre la lista de amigos reales)
 int RedSocial::contarAmigosEnComun(const std::string& user1, const std::string& user2) const {
-    int idx1 = obtenerIndiceUsuario(user1);
-    int idx2 = obtenerIndiceUsuario(user2);
-    if (idx1 == -1 || idx2 == -1) return 0;
+    RedSocial* self = const_cast<RedSocial*>(this);
+    Usuario* u1 = self->buscarUsuario(user1);
+    Usuario* u2 = self->buscarUsuario(user2);
+
+    if (u1 == nullptr || u2 == nullptr) return 0;
 
     int comun = 0;
-    for (int k = 0; k < usuarios.obtenerTamano(); k++) {
+    ListaDinamica<Usuario*>& amigosU1 = u1->getAmigos();
+
+    for (int i = 0; i < amigosU1.obtenerTamano(); i++) {
         RastreadorMemoria::RegistroIteracion();
-        if (matrizAmistad[idx1][k] && matrizAmistad[idx2][k]) {
+        Usuario* amigoDeU1 = amigosU1.obtener(i);
+        if (u2->esAmigoDe(amigoDeU1)) {
             comun++;
         }
     }
     return comun;
 }
 
-// Algoritmo 1: Sorteo de mejores amigos al iniciar sesion
+// Algoritmo 1: Sorteo de mejores amigos con probabilidades ponderadas
 ListaDinamica<Usuario*> RedSocial::obtenerMejoresAmigosSorteados(const std::string& username) {
     ListaDinamica<Usuario*> seleccionados;
     Usuario* u = buscarUsuario(username);
@@ -130,34 +107,27 @@ ListaDinamica<Usuario*> RedSocial::obtenerMejoresAmigosSorteados(const std::stri
     int totalAmigos = amigos.obtenerTamano();
     if (totalAmigos == 0) return seleccionados;
 
-    // Matriz de pesos dinámicos para almacenar la probabilidad de cada amigo
     double* pesos = new double[totalAmigos];
     double sumaTotalPesos = 0.0;
 
-    // Registramos la memoria de los arreglos temporales del Heap
     size_t bytesTemporales = (sizeof(double) * totalAmigos) + (sizeof(bool) * totalAmigos);
     RastreadorMemoria::RegistroAsignacionMemoria(bytesTemporales);
 
-
-    //Calculamos los amigos en común y asignamos boletos de prioridad según el enunciado
     for (int i = 0; i < totalAmigos; i++) {
-       RastreadorMemoria::RegistroIteracion();
-
+        RastreadorMemoria::RegistroIteracion();
         Usuario* amigo = amigos.obtener(i);
         int comunes = contarAmigosEnComun(username, amigo->getUsername());
 
-        // Aplicación de los pesos dados en el enuciado
         if (comunes <= 10) {
-            pesos[i] = 1.0;  // Probabilidad simple
+            pesos[i] = 1.0;
         } else if (comunes >= 11 && comunes <= 20) {
-            pesos[i] = 2.5;  // 2.5 veces más prioridad
+            pesos[i] = 2.5;
         } else {
-            pesos[i] = 3.5;  // 3.5 veces más prioridad
+            pesos[i] = 3.5;
         }
         sumaTotalPesos += pesos[i];
     }
 
-    // Sistema de sorteo ponderado: seleccionamos hasta 3 amigos sin repetir
     bool* yaSeleccionado = new bool[totalAmigos];
     for (int i = 0; i < totalAmigos; i++) yaSeleccionado[i] = false;
 
@@ -165,27 +135,23 @@ ListaDinamica<Usuario*> RedSocial::obtenerMejoresAmigosSorteados(const std::stri
 
     for (int s = 0; s < objetivosASeleccionar; s++) {
         RastreadorMemoria::RegistroIteracion();
-
-        // Generamos un punto aleatorio en el rango de los boletos totales
         double dardo = (rand() % 10000 / 10000.0) * sumaTotalPesos;
         double acumulado = 0.0;
 
         for (int i = 0; i < totalAmigos; i++) {
             RastreadorMemoria::RegistroIteracion();
-
             if (yaSeleccionado[i]) continue;
 
             acumulado += pesos[i];
             if (dardo <= acumulado) {
                 seleccionados.agregarAlFinal(amigos.obtener(i));
                 yaSeleccionado[i] = true;
-                sumaTotalPesos -= pesos[i]; // Restamos para recalcular el espacio restante
+                sumaTotalPesos -= pesos[i];
                 break;
             }
         }
     }
 
-    // Limpieza de la memoria  Heap para evitar Memory Leaks
     RastreadorMemoria::RegistroLiberacionMemoria(bytesTemporales);
     delete[] pesos;
     delete[] yaSeleccionado;
@@ -193,18 +159,20 @@ ListaDinamica<Usuario*> RedSocial::obtenerMejoresAmigosSorteados(const std::stri
     return seleccionados;
 }
 
-// Algoritmo 2: Ranking Top-K de sugerencias de amistad
+// Algoritmo 2: Ranking Top-K de sugerencias
 ListaDinamica<Usuario*> RedSocial::obtenerSugerenciasK(const std::string& username, int k) {
     ListaDinamica<Usuario*> sugerencias;
-    int idxUser = obtenerIndiceUsuario(username);
-    if (idxUser == -1) return sugerencias;
+    Usuario* uActivo = buscarUsuario(username);
+    if (uActivo == nullptr) return sugerencias;
 
     for (int i = 0; i < usuarios.obtenerTamano(); i++) {
         RastreadorMemoria::RegistroIteracion();
-        if (i != idxUser && !matrizAmistad[idxUser][i]) {
-            int comun = contarAmigosEnComun(username, usuarios.obtener(i)->getUsername());
+        Usuario* candidato = usuarios.obtener(i);
+
+        if (candidato != uActivo && !uActivo->esAmigoDe(candidato)) {
+            int comun = contarAmigosEnComun(username, candidato->getUsername());
             if (comun > 0) {
-                sugerencias.agregarAlFinal(usuarios.obtener(i));
+                sugerencias.agregarAlFinal(candidato);
                 if (sugerencias.obtenerTamano() == k) break;
             }
         }
@@ -240,7 +208,6 @@ bool RedSocial::cargarUsuariosDesdeArchivo(const std::string& rutaArchivo) {
         std::getline(ss, fechaInsc, ';');
 
         if (!username.empty()) {
-
             if (buscarUsuario(username) != nullptr || obtenerCantidadUsuarios() >= capacidadMaxima) {
                 continue;
             }
@@ -248,7 +215,6 @@ bool RedSocial::cargarUsuariosDesdeArchivo(const std::string& rutaArchivo) {
             Usuario* nuevo = new Usuario(username, fechaNac, email, foto, ciudad, pais, fechaInsc);
             agregarUsuario(nuevo);
             RastreadorMemoria::RegistroAsignacionMemoria(nuevo->getMemoria());
-
         }
     }
     archivo.close();
@@ -265,7 +231,6 @@ bool RedSocial::cargarRelacionesDesdeArchivo(const std::string& rutaArchivo) {
     std::string linea;
     while (std::getline(archivo, linea)) {
         RastreadorMemoria::RegistroIteracion();
-
         if (linea.empty()) continue;
 
         std::stringstream ss(linea);
@@ -282,8 +247,10 @@ bool RedSocial::cargarRelacionesDesdeArchivo(const std::string& rutaArchivo) {
     return true;
 }
 
+size_t RedSocial::getMemoria() const {
+    return this->bytesOcupados;
+}
 
-//Metodos auditoria
-size_t RedSocial::getMemoria() const{return this-> bytesOcupados;}
 const char* RedSocial::getLibreriasUsadas() {
-    return "RedSocial.h, Usuario.h, ListaDinamica.h, RastreadorMemoria.h, <iostream>, <fstream>, <sstream>, <cstdlib>, <cstddef>";}
+    return "RedSocial.h, Usuario.h, ListaDinamica.h, RastreadorMemoria.h, <iostream>, <fstream>, <sstream>, <cstdlib>, <cstddef>";
+}
