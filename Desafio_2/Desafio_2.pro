@@ -24,6 +24,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     ListaDinamica.h \
     RastreadorMemoria.h \
+    RedSocial.h \
     SistemaUdeABook.h \
     album.h \
     foto.h \
