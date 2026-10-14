@@ -4,7 +4,9 @@
 #include <string>
 #include <cstddef>
 #include "ListaDinamica.h"
-#include "Mensaje.h"
+#include "Usuario.h"
+#include "mensaje.h"
+
 using namespace std;
 
 class Mensajeria{
@@ -21,11 +23,12 @@ public:
     static const char* getLibreriasUsadas();
 
     //metodos de la mensajeria
-    void enviarMensaje(const string& emisor, const string& receptor, const string& texto, long fechaEnvio);
+    bool cargarArchivoMensajes(const string& rutaArchivo);
+    void enviarMensaje(Usuario *emisor, Usuario *receptor, const string& texto, long fechaEnvio);
     void getNuevosmsn(const string& usuarioReceptor);
     void verBandejaCompleta(const string& usuarioReceptor);
     void buscarporFecha(const string& usuarioReceptor,long fechaInicio, long fechaFin);
-
+    bool guardarMensajesEnArchivo(const std::string& rutaArchivo);
 };
 
 #endif // MENSAJERIA_H

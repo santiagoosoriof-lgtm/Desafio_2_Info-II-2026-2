@@ -1,7 +1,28 @@
-#include "Fecha.h"
+#include "fecha.h"
 #include "RastreadorMemoria.h"
+#include <chrono>
 
 using namespace std;
+
+long Fecha::obtenerFechaActual(){
+
+    auto ahora = chrono::system_clock::now();
+
+    // tomamos el punto de tiempo y lo convertimo en tiempo estructurado
+    time_t tiempoEstructurado = chrono::system_clock::to_time_t(ahora);
+
+    // lo pasamos a la estructura local para separar año, mes y día
+    tm* tiempoLocal = localtime(&tiempoEstructurado);
+
+    //Aplicamos correcciones
+    int anio = tiempoLocal->tm_year + 1900;
+    int mes  = tiempoLocal->tm_mon + 1;
+    int dia  = tiempoLocal->tm_mday;
+
+    //hacemos el formato invertido AAAAMMDD
+    return (static_cast<long>(anio) * 10000) + (mes * 100) + dia;
+}
+
 
 // Convierte un segmento de un string a un numero entero de forma manual
 int Fecha::stringAEnteroManual(const string& cadena, int inicio, int fin) {
@@ -43,6 +64,24 @@ long Fecha::cadenaALongInvertido(const string& fechaCadena) {
     return (static_cast<long>(anio) * 10000) + (mes * 100) + dia; //20260000+1000+12-->20261012
 }
 
+long Fecha::StringNumtoLong(const string& cadenaNumeros){
+    long resultado = 0;
+    int i = 0;
+
+    // Recorremos la cadena hasta el final
+    while (cadenaNumeros[i] != '\0') {
+        RastreadorMemoria::RegistroIteracion();
+
+        // Si es un caracter numerico valido, lo guardanmos como long
+        if (cadenaNumeros[i] >= '0' && cadenaNumeros[i] <= '9') {
+            resultado = resultado * 10 + (cadenaNumeros[i] - '0');
+        }
+        i++;
+    }
+    return resultado;
+
+}
+
 // Transforma 20261013 en "13 de Octubre de 2026"
 string Fecha::longAFormatoHumano(long fechaLong) {
     // Descomponemos el numero
@@ -74,5 +113,5 @@ string Fecha::longAFormatoHumano(long fechaLong) {
 }
 
 const char* Fecha::getLibreriasUsadas() {
-    return "Fecha.h, RastreadorMemoria.h, <string>, <cstddef>";
+    return "Fecha.h, RastreadorMemoria.h, <string>, <chrono>, <cstddef>";
 }

@@ -26,6 +26,7 @@ void SistemaUdeABook::cargarBaseDeDatos() {
     cout << "Cargando datos del sistema UdeABook...\n";
     red.cargarUsuariosDesdeArchivo("usuarios.txt");
     red.cargarRelacionesDesdeArchivo("relaciones.txt");
+    gestorMensajeria->cargarArchivoMensajes("Mensajes.txt");
 
     RastreadorMemoria::ReporteEficiencia();
 }
@@ -315,20 +316,24 @@ void SistemaUdeABook::menuAdministrarMensajes() {
     cin >> op;
 
     if (op == 1) {
-        string destinatario, texto, fechaTexto;
+        string destinatario, texto;
         cout << "Destinatario (username): ";
         cin >> destinatario;
         cout << "Texto (max 512 caracteres): ";
         cin.ignore();
         getline(cin, texto);
-        cout << "Ingrese la fecha del mensaje (AAAA-MM-DD): ";
-        cin >> fechaTexto;
 
+        Usuario* receptor = red.buscarUsuario(destinatario);
 
-        long fechaLong = Fecha::cadenaALongInvertido(fechaTexto);
+        if (receptor == nullptr) {
+            cout << "[Error]: El usuario destinatario no existe en UdeABook.\n";
+        } else {
+            long fechaHoy = Fecha::obtenerFechaActual();
 
-        gestorMensajeria->enviarMensaje(usuarioActivo->getUsername(), destinatario, texto, fechaLong);
-        cout << "Mensaje enviado a " << destinatario << " exitosamente.\n";
+            // Enviamos el mensaje
+            gestorMensajeria->enviarMensaje(usuarioActivo, receptor, texto, fechaHoy);
+            cout << "Mensaje enviado exitosamente.\n";
+        }
 
     } else if (op == 2) {
 
@@ -396,6 +401,8 @@ void SistemaUdeABook::iniciar() {
         } else if (opcion == 'N' || opcion == 'n') {
             cout << "\nRefrescando seleccion de mejores amigos...\n";
         } else if (opcion == 'S' || opcion == 's') {
+            cout << "\nGuardando Cambios\n";
+            gestorMensajeria->guardarMensajesEnArchivo("Mensajes.txt");
             cout << "\nCerrando sesion en UdeABook... Hasta pronto\n";
         } else {
             cout << "Opcion invalida. Intente de nuevo.\n";

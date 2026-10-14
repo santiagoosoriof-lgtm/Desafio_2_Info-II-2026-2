@@ -91,6 +91,23 @@ ListaDinamica<Usuario*>& Usuario::getSolicitudesPendientes() {
 const ListaDinamica<Usuario*>& Usuario::getSolicitudesPendientes() const {
     return solicitudesPendientes;
 }
+ListaDinamica<Mensaje*>& Usuario::getMensajesEnviados() {
+    return mensajesEnviados;
+}
+
+const ListaDinamica<Mensaje*>& Usuario::getMensajesEnviados() const {
+    return mensajesEnviados;
+}
+
+ListaDinamica<Mensaje*>& Usuario::getMensajesRecibidos() {
+    return mensajesRecibidos;
+}
+
+const ListaDinamica<Mensaje*>& Usuario::getMensajesRecibidos() const {
+    return mensajesRecibidos;
+}
+
+
 
 // Getters de auditoria
 size_t Usuario::getMemoria() const{ return this->bytesOcupados;}

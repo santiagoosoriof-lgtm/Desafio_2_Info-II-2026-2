@@ -4,7 +4,7 @@
 #include <string>
 #include "RedSocial.h"
 #include "Usuario.h"
-#include "Album.h"
+#include "album.h"
 #include "foto.h"
 #include "mensajeria.h"
 #include "RastreadorMemoria.h"

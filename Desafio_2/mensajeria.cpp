@@ -2,6 +2,10 @@
 #include "RastreadorMemoria.h"
 #include "fecha.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
+
+using namespace std;
 
 //constructor y destructor
 Mensajeria::Mensajeria() {
@@ -29,16 +33,61 @@ size_t Mensajeria::getMemoria() const{ return this-> bytesOcupados;}
 
 const char* Mensajeria::getLibreriasUsadas(){
     return "mensajeria.h, RastreadorMemoria.h, <iostream>,"
-           " <string>, <cstddef>, ListaDinamica.h, Mensaje.h";}
+           " <string>, <cstddef>, ListaDinamica.h, mensaje.h";}
 
 //metodos de la mensajeria
-void Mensajeria::enviarMensaje(const string& emisor, const string& receptor, const string& texto, long fechaEnvio){
+
+bool Mensajeria::cargarArchivoMensajes(const string& rutaArchivo) {
+    std::ifstream archivo(rutaArchivo);
+    if (!archivo.is_open()) {
+        return false;
+    }
+
+    string linea;
+    while (getline(archivo, linea)) {
+        RastreadorMemoria::RegistroIteracion();
+        if (linea.empty()) continue;
+
+        stringstream ss(linea);
+        string emisor, receptor, texto, fechaStr, leidoStr;
+
+        // Identificamos los datos de la linea con el separador punto y coma ';'
+        getline(ss, emisor, ';');
+        getline(ss, receptor, ';');
+        getline(ss, texto, ';');
+        getline(ss, fechaStr, ';');
+        getline(ss, leidoStr, ';');
+
+        if (!emisor.empty() && !receptor.empty()) {
+            // Convertimos la fecha a long
+            long fechaLong = Fecha::StringNumtoLong(fechaStr);
+
+            // Reconstruimos todos los mensajes en la RAM
+            Mensaje* msn = new Mensaje(emisor, receptor, texto, fechaLong);
+            msn->setLeido(leidoStr == "1");
+
+            RastreadorMemoria::RegistroAsignacionMemoria(msn->getMemoria());
+            bandejaMensajes.agregarAlFinal(msn);
+        }
+    }
+    archivo.close();
+    return true;
+}
+
+void Mensajeria::enviarMensaje(Usuario* emisor, Usuario* receptor, const string& texto, long fechaEnvio){
+    if(emisor == nullptr || receptor == nullptr ){
+        cout << "Debe ingresar un receptor" << endl;
+        return;
+    }
+
     //creamos el mensaje
-    Mensaje* nuevomsn = new Mensaje(emisor, receptor, texto, fechaEnvio);
+    Mensaje* nuevomsn = new Mensaje(emisor-> getUsername(), receptor-> getUsername(), texto, fechaEnvio);
     RastreadorMemoria::RegistroAsignacionMemoria(nuevomsn->getMemoria());
 
     //insertar el mensaje en la lista
     bandejaMensajes.agregarAlFinal(nuevomsn);
+    emisor->getMensajesEnviados().agregarAlFinal(nuevomsn);
+    receptor->getMensajesRecibidos().agregarAlFinal(nuevomsn);
 
 }
 //obtener los nuevos mensajes de la bandeja de entrada
@@ -95,7 +144,6 @@ void Mensajeria::getNuevosmsn(const string& usuarioReceptor){
         delete[] conteoNuevos;
 
     }
-
 
 
 void Mensajeria::verBandejaCompleta(const string& usuarioReceptor){
@@ -179,4 +227,29 @@ void Mensajeria::buscarporFecha(const string& usuarioReceptor, long fechaInicio,
     if (encontrados == 0) {
         cout << "No se encontraron mensajes registrados en ese rango de fechas.\n";
     }
+}
+
+bool Mensajeria::guardarMensajesEnArchivo(const std::string& rutaArchivo) {
+    std::ofstream archivo(rutaArchivo);
+    if (!archivo.is_open()) {
+        std::cerr << "Error: No se pudo crear el archivo de mensajes.\n";
+        return false;
+    }
+
+    int total = bandejaMensajes.obtenerTamano();
+    for (int i = 0; i < total; i++) {
+        RastreadorMemoria::RegistroIteracion();
+
+        Mensaje* msn = bandejaMensajes.obtener(i);
+        if (msn != nullptr) {
+            // Escribimos con el formato estandarizado: emisor;receptor;texto;fecha;leido
+            archivo << msn->getEmisor() << ";"
+                    << msn->getReceptor() << ";"
+                    << msn->getTexto() << ";"
+                    << msn->getFechaEnvio() << ";"
+                    << (msn->estaleido() ? "1" : "0") << "\n";
+        }
+    }
+    archivo.close();
+    return true;
 }

@@ -56,6 +56,10 @@ public:
     const ListaDinamica<Album*> &getAlbumes() const;
     ListaDinamica<Usuario*>& getSolicitudesPendientes();
     const ListaDinamica<Usuario*>& getSolicitudesPendientes() const;
+    ListaDinamica<Mensaje*>& getMensajesEnviados();
+    const ListaDinamica<Mensaje*>& getMensajesEnviados() const;
+    ListaDinamica<Mensaje*>& getMensajesRecibidos();
+    const ListaDinamica<Mensaje*>& getMensajesRecibidos() const;
 
     // Setters
     void setFotoPerfilRuta(const std::string& ruta);

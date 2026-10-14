@@ -18,8 +18,14 @@ private:
     static string enteroAStringManual(int numero);
 
 public:
+    //Obtiene la fecha actual
+    static long obtenerFechaActual();
+
     // Convierte una cadena "AAAA-MM-DD" o "AAAA/MM/DD" a long numérico AAAAAMMDD
     static long cadenaALongInvertido(const string& fechaCadena);
+
+    //Convierte una cadena "AAAAMMDD" a long AAAAMMDD
+    static long StringNumtoLong(const string& cadenaNumeros);
 
     // Convierte el long numérico AAAAAMMDD a formato amigable con el usuario
     static string longAFormatoHumano(long fechaLong);
