@@ -1,0 +1,10 @@
+debug/RastreadorMemoria.o
+debug/SistemaUdeABook.o
+debug/album.o
+debug/fecha.o
+debug/foto.o
+debug/RedSocial.o
+debug/Usuario.o
+debug/main.o
+debug/mensaje.o
+debug/mensajeria.o

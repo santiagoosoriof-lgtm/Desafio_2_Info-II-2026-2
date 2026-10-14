@@ -1,0 +1,10 @@
+release/RastreadorMemoria.o
+release/SistemaUdeABook.o
+release/album.o
+release/fecha.o
+release/foto.o
+release/RedSocial.o
+release/Usuario.o
+release/main.o
+release/mensaje.o
+release/mensajeria.o

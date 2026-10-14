@@ -73,6 +73,25 @@ std::string Usuario::getCiudad() const { return ciudad; }
 std::string Usuario::getPais() const { return pais; }
 std::string Usuario::getFechaInscripcion() const { return fechaInscripcion; }
 
+int Usuario::getCantidadAlbums() const{
+    return albumes.obtenerTamano();
+}
+ListaDinamica<Album*>& Usuario::getAlbumes() {
+    return albumes;
+}
+
+const ListaDinamica<Album*>& Usuario::getAlbumes() const {
+    return albumes;
+}
+
+ListaDinamica<Usuario*>& Usuario::getSolicitudesPendientes() {
+    return solicitudesPendientes;
+}
+
+const ListaDinamica<Usuario*>& Usuario::getSolicitudesPendientes() const {
+    return solicitudesPendientes;
+}
+
 // Getters de auditoria
 size_t Usuario::getMemoria() const{ return this->bytesOcupados;}
 const char* Usuario::getLibreriasUsadas(){

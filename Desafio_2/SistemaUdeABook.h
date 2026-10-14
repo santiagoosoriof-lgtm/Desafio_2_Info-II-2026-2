@@ -5,14 +5,15 @@
 #include "RedSocial.h"
 #include "Usuario.h"
 #include "Album.h"
-#include "Foto.h"
-#include "Mensaje.h"
+#include "foto.h"
+#include "mensajeria.h"
 #include "RastreadorMemoria.h"
 
 class SistemaUdeABook {
 private:
     RedSocial red;
     Usuario* usuarioActivo;
+    Mensajeria* gestorMensajeria;
 
     // Métodos privados para cada submenú
     void mostrarMejoresAmigos();

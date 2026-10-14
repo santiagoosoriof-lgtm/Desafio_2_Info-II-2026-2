@@ -36,7 +36,7 @@ public:
     Usuario(std::string username, std::string fechaNacimiento, std::string email,
             std::string fotoPerfilRuta, std::string ciudad, std::string pais, std::string fechaInscripcion);
 
-    // Constructor de Copia (Exigido en el proyecto)
+    // Constructor de Copia
     Usuario(const Usuario& otro);
 
     // Destructor
@@ -50,6 +50,12 @@ public:
     std::string getCiudad() const;
     std::string getPais() const;
     std::string getFechaInscripcion() const;
+
+    int getCantidadAlbums() const;
+    ListaDinamica<Album*> &getAlbumes();
+    const ListaDinamica<Album*> &getAlbumes() const;
+    ListaDinamica<Usuario*>& getSolicitudesPendientes();
+    const ListaDinamica<Usuario*>& getSolicitudesPendientes() const;
 
     // Setters
     void setFotoPerfilRuta(const std::string& ruta);
