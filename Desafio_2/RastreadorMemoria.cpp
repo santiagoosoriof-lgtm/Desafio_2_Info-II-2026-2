@@ -9,7 +9,7 @@ using namespace std;
 
     // Reinicia contadores y define que librerias/modulos se usaran en la funcionalidad
     void RastreadorMemoria::IniciarSegmento(const string& modulosYLibrerias) {
-        iteracionesTotales = 0;
+        //iteracionesTotales = 0;
         libreriasEjecutadas = modulosYLibrerias;
     }
 

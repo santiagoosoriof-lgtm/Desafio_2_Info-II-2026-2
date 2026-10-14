@@ -1,8 +1,9 @@
-#include "RastreadorMemoria.h"
-#include "mensaje.h"
+#include "RedSocial.h"
+#include "Mensajeria.h"
 #include "album.h"
 #include "foto.h"
-#include "RedSocial.h"
+#include "fecha.h"
+#include "RastreadorMemoria.h"
 
 #include <iostream>
 #include <string>
@@ -10,7 +11,7 @@
 
 using namespace std;
 
-// Función para asegurar que existan los archivos planos de prueba
+// Función de Juan para asegurar que existan los archivos planos de prueba
 void crearArchivosDePrueba() {
     ifstream checkUser("usuarios.txt");
     if (!checkUser.good()) {
@@ -22,201 +23,110 @@ void crearArchivosDePrueba() {
             fUsuarios.close();
         }
     }
+
+    ifstream checkRel("relaciones.txt");
+    if (!checkRel.good()) {
+        ofstream fRelaciones("relaciones.txt");
+        if (fRelaciones.is_open()) {
+            fRelaciones << "juan_perez;santiago_gomez\n";
+            fRelaciones << "santiago_gomez;maria_lopez\n";
+            fRelaciones.close();
+        }
+    }
 }
 
-int main(){
-    // ============================================================
-    //  CARGA Y PRUEBAS DEL MÓDULO CORE (JUAN)
-    // ============================================================
+int main() {
+
+    RastreadorMemoria::IniciarSegmento("main.cpp, RedSocial.h, <fstream>");
+
     cout << "=========================================\n";
-    cout << "   1. INICIALIZACION Y PERSISTENCIA CORE \n";
+    cout << "     INICIALIZACION Y PERSISTENCIA CORE \n";
     cout << "=========================================\n";
 
-    // Crear archivos de texto si no existen
     crearArchivosDePrueba();
 
-    // Inicializar la red social y cargar persistencia
+    // Inicializar la red social (El constructor ya registra la matriz internamente)
     RedSocial red(100);
+
+    // Cargamos los archivos planos (Inyectan iteraciones y memoria de usuarios)
     red.cargarUsuariosDesdeArchivo("usuarios.txt");
     red.cargarRelacionesDesdeArchivo("relaciones.txt");
-    cout << "-> Datos de Usuarios y Relaciones cargados correctamente.\n\n";
+    cout << "-> Datos de Usuarios y Relaciones cargados correctamente.\n";
 
-
-    // ============================================================
-    // 2. PRUEBAS DEL MÓDULO DE MENSAJES, FOTOS Y RASTREADOR (SANTIAGO)
-    // ============================================================
-    cout << "=========================================\n";
-    cout << "   2. PRUEBAS DE MENSAJES Y MEMORIA      \n";
-    cout << "=========================================\n";
-
-    for(int i = 0; i < 1000; i++){
-        RastreadorMemoria::RegistroIteracion();
-    }
-    RastreadorMemoria::IniciarSegmento(Mensaje::getLibreriasUsadas());
-    RastreadorMemoria::RegistroAsignacionMemoria(1000);
-    RastreadorMemoria::ReporteEficiencia();
-    RastreadorMemoria::RegistroLiberacionMemoria(1000);
+    // Imprimimos el reporte del primer segmento (Carga Masiva)
     RastreadorMemoria::ReporteEficiencia();
 
-    Mensaje* chat1 = new Mensaje("Santiago","Juan","Hola Juan, Como estas? este es un mensaje de prueba de la clase Mensaje", 10102026);
-    RastreadorMemoria::RegistroAsignacionMemoria(chat1->getMemoria());
-    cout << " -> Emisor:   " << (*chat1).getEmisor() << "\n";
-    cout << " -> Receptor: " << (*chat1).getReceptor() << "\n";
-    cout << " -> Texto:    " << (*chat1).getTexto() << "\n";
-    cout << " -> Fecha:    " << (*chat1).getFechaEnvio() << "\n";
-    cout << " -> Leido:    " << ((*chat1).estaleido() ? "Si" : "No") << "\n\n";
 
-    string textogigante ="";
-    for(int i = 0; i < 60; i++ ){
-        textogigante += "0123456789";
-        RastreadorMemoria::RegistroIteracion();
-    }
-
-    Mensaje* chat2 = new Mensaje("Santiago","Juan", textogigante, 10102026);
-    RastreadorMemoria::RegistroAsignacionMemoria(chat2->getMemoria());
-
-    cout << " -> Emisor:   " << (*chat2).getEmisor() << "\n";
-    cout << " -> Receptor: " << (*chat2).getReceptor() << "\n";
-    cout << " -> Texto:    " << (*chat2).getTexto() << "\n";
-    cout << " -> Fecha:    " << (*chat2).getFechaEnvio() << "\n";
-    cout << " -> Leido:    " << ((*chat2).estaleido() ? "Si" : "No") << "\n\n";
-
-    RastreadorMemoria::ReporteEficiencia();
-    RastreadorMemoria::RegistroLiberacionMemoria(chat1->getMemoria());
-    delete chat1;
-    RastreadorMemoria::RegistroLiberacionMemoria(chat2->getMemoria());
-    delete chat2;
-    RastreadorMemoria::ReporteEficiencia();
+    string libsMultimedia = string(Album::getLibreriasUsadas());
+    RastreadorMemoria::IniciarSegmento(libsMultimedia);
 
     cout << "=========================================\n";
-    cout << "   3. PRUEBAS DE FOTOS Y MEMORIA      \n";
+    cout << "      PRUEBAS DE GALERIA Y CARRUSEL      \n";
     cout << "=========================================\n";
 
-    Foto* foto1= new Foto("10102026","/home/santiago/udeabook/media/vacaciones.png",2621440);
-    RastreadorMemoria::RegistroAsignacionMemoria(foto1->getMemoria());
-    RastreadorMemoria::IniciarSegmento(Foto::getLibreriasUsadas());
-    cout << " -> Fecha Captura: " << foto1->getFechaCaptura() << "\n";
-    cout << " -> Ruta Linux:    " << foto1->getRutaAbsoluta() << "\n";
-    cout << " -> Peso Imagen:   " << foto1->getTamanoBytes() << " Bytes (Simulado)\n";
-    cout << " -> Likes Inicial: " << foto1->getLikes() << "\n";
+    // Simulamos la creación de una galería para santiago_gomez
+    Album* albumVacaciones = new Album("Vacaciones San Andres", "/home/santi/media/", "Publico");
+    RastreadorMemoria::RegistroAsignacionMemoria(albumVacaciones->getMemoria());
 
-    // Imprimimos el reporte para ver cuántos bytes base + dinámicos costó en RAM
-    RastreadorMemoria::ReporteEficiencia();
+    Foto* fPlaya = new Foto("20261011", "/media/playa.png", 5242880); // 5MB simulados
+    Foto* fHotel = new Foto("20261012", "/media/hotel.png", 3145728); // 3MB simulados
 
-    //probar los likes
+    RastreadorMemoria::RegistroAsignacionMemoria(fPlaya->getMemoria());
+    RastreadorMemoria::RegistroAsignacionMemoria(fHotel->getMemoria());
 
-    foto1->setLike();
-    foto1->setLike();
-    foto1->setLike();
-    cout << "la foto tiene " << foto1->getLikes() <<" Me gusta\n";
-    foto1->setUnlike();
-    cout << "la foto tiene " << foto1->getLikes() <<" Me gusta\n";
-    foto1->setUnlike();
-    foto1->setUnlike();
-    foto1->setUnlike();
-    cout << "la foto tiene " << foto1->getLikes() <<" Me gusta\n";
+    // Agregamos las fotos aplicando el control de exclusividad
+    albumVacaciones->agregarFoto(fPlaya);
+    albumVacaciones->agregarFoto(fHotel);
 
-    RastreadorMemoria::RegistroLiberacionMemoria(foto1->getMemoria());
-    delete foto1;
+    // Navegación del carrusel circular dinámico
+    cout << " -> Foto inicial:   " << albumVacaciones->obtenerFotoActual()->getRutaAbsoluta() << "\n";
+    albumVacaciones->fotoSiguiente();
+    cout << " -> Al avanzar:     " << albumVacaciones->obtenerFotoActual()->getRutaAbsoluta() << "\n";
+    albumVacaciones->fotoSiguiente(); // Giro circular adelante
+    cout << " -> Giro adelante:  " << albumVacaciones->obtenerFotoActual()->getRutaAbsoluta() << "\n";
 
     RastreadorMemoria::ReporteEficiencia();
 
-    RastreadorMemoria::IniciarSegmento(Album::getLibreriasUsadas());
 
-    cout << "==================================================\n";
-    cout << "      PRUEBA UNITARIA: CLASE ALBUM (Ude@Book)    \n";
-    cout << "==================================================\n\n";
+    RastreadorMemoria::IniciarSegmento(Mensajeria::getLibreriasUsadas());
 
-    // -----------------------------------------------------------------
-    // TEST 1: Creación de Álbum y Fotos Independientes
-    // -----------------------------------------------------------------
-    cout << "[Test 1] Creando Album y cargando contenido...\n";
+    cout << "=========================================\n";
+    cout << "      PRUEBAS DE CHAT Y MENSALERIA       \n";
+    cout << "=========================================\n";
 
-    Album* miAlbum = new Album("Viaje San Andres", "/home/santiago/fotos/", "Publico");
-    RastreadorMemoria::RegistroAsignacionMemoria(miAlbum->getMemoria());
+    Mensajeria chatGlobal;
+    string fechaEntradaTexto1 = "2026-10-10";
+    string fechaEntradaTexto2 = "2026-10-12";
+    long fecha1Long = Fecha::cadenaALongInvertido(fechaEntradaTexto1); // Devuelve 20261010
+    long fecha2Long = Fecha::cadenaALongInvertido(fechaEntradaTexto2); // Devuelve 20261012
 
-    // Instanciamos 3 fotos independientes
-    Foto* f1 = new Foto("20261011", "/media/playa.png", 1024);
-    Foto* f2 = new Foto("20261011", "/media/hotel.png", 2048);
-    Foto* f3 = new Foto("20261011", "/media/buceo.png", 4096);
+    /
+    chatGlobal.enviarMensaje("santiago_gomez", "juan_perez", "Hola Juan, ya monte mi rastreador.", fecha1Long);
+    chatGlobal.enviarMensaje("juan_perez", "santiago_gomez", "Excelente Santi, probemos el chat.", fecha2Long);
+    chatGlobal.enviarMensaje("santiago_gomez", "juan_perez", "Mensaje antiguo de prueba.", fecha1Long);
 
-    RastreadorMemoria::RegistroAsignacionMemoria(f1->getMemoria());
-    RastreadorMemoria::RegistroAsignacionMemoria(f2->getMemoria());
-    RastreadorMemoria::RegistroAsignacionMemoria(f3->getMemoria());
 
-    // Metemos las 3 fotos al primer álbum
-    miAlbum->agregarFoto(f1);
-    miAlbum->agregarFoto(f2);
-    miAlbum->agregarFoto(f3);
+    chatGlobal.getNuevosmsn("juan_perez");
+    chatGlobal.verBandejaCompleta("juan_perez");
 
-    cout << " -> Album creado: " << miAlbum->getNombre() << "\n";
-    cout << " -> Cantidad de fotos cargadas: " << miAlbum->cantidadFotos() << " (Esperado: 3)\n\n";
 
-    // -----------------------------------------------------------------
-    // TEST 2: Validación de la Regla de Exclusividad (Seguridad)
-    // -----------------------------------------------------------------
-    cout << "[Test 2] Intentando duplicar f1 en un segundo album ...\n";
-
-    Album* album2 = new Album("Fotos Duplicadas", "/home/juan/", "Privado");
-    RastreadorMemoria::RegistroAsignacionMemoria(album2->getMemoria());
-
-    // 🚨 Intento ilegal: meter f1 (que ya es de miAlbum) en albumHack
-    album2->agregarFoto(f1);
-
-    cout << " -> Cantidad en album hacker: " << album2->cantidadFotos() << " (Esperado: 0 por bloqueo)\n\n";
-
-    // -----------------------------------------------------------------
-    // TEST 3: Ejecución del Carrusel Circular (Aritmética Modular)
-    // -----------------------------------------------------------------
-    cout << "[Test 3] Probando navegacion infinita del carrusel...\n";
-
-    // Foto inicial (índice 0)
-    cout << " -> Foto Actual: " << miAlbum->obtenerFotoActual()->getRutaAbsoluta() << " (Esperado: /media/playa.png)\n";
-
-    // Avanzamos 1 (índice 1)
-    miAlbum->fotoSiguiente();
-    cout << " -> Al avanzar:  " << miAlbum->obtenerFotoActual()->getRutaAbsoluta() << " (Esperado: /media/hotel.png)\n";
-
-    // Avanzamos 1 (índice 2)
-    miAlbum->fotoSiguiente();
-    cout << " -> Al avanzar:  " << miAlbum->obtenerFotoActual()->getRutaAbsoluta() << " (Esperado: /media/buceo.png)\n";
-
-    // 🚀 GIRO CIRCULAR DELANTERO: Estamos al final, si avanzamos debe volver a la primera (índice 0)
-    miAlbum->fotoSiguiente();
-    cout << " -> Giro Adelante Regresa a: " << miAlbum->obtenerFotoActual()->getRutaAbsoluta() << " (Esperado: /media/playa.png)\n";
-
-    // 🚀 GIRO CIRCULAR TRASERO: Estamos en la primera, si retrocedemos debe saltar a la última (índice 2)
-    miAlbum->fotoAnterior();
-    cout << " -> Giro Atras Salta a:      " << miAlbum->obtenerFotoActual()->getRutaAbsoluta() << " (Esperado: /media/buceo.png)\n\n";
-
-    // -----------------------------------------------------------------
-    // LIMPIEZA DE MEMORIA DINÁMICA
-    // -----------------------------------------------------------------
+    chatGlobal.buscarporFecha("juan_perez",20261010, 20261013);
 
     RastreadorMemoria::ReporteEficiencia();
-    cout << "[Test 4] Liberando estructuras y limpiando memoria RAM...\n";
 
-    // Descontamos del rastreador antes del delete
-    RastreadorMemoria::RegistroLiberacionMemoria(miAlbum->getMemoria());
-    RastreadorMemoria::RegistroLiberacionMemoria(album2->getMemoria());
-    RastreadorMemoria::RegistroLiberacionMemoria(f1->getMemoria());
-    RastreadorMemoria::RegistroLiberacionMemoria(f2->getMemoria());
-    RastreadorMemoria::RegistroLiberacionMemoria(f3->getMemoria());
+    cout << "=========================================\n";
+    cout << "     LIBERACION FINAL DE RECURSOS        \n";
+    cout << "=========================================\n";
 
-    // Destrucción física
-    delete miAlbum;
-    delete album2;
-    delete f1;
-    delete f2;
-    delete f3;
+    // Antes de borrar los punteros, notificamos al rastreador para mantener la simetría
+    RastreadorMemoria::RegistroLiberacionMemoria(albumVacaciones->getMemoria());
+    RastreadorMemoria::RegistroLiberacionMemoria(fPlaya->getMemoria());
+    RastreadorMemoria::RegistroLiberacionMemoria(fHotel->getMemoria());
 
-    // Reporte final del ResourceTracker: Debe quedar perfectamente en 0 Bytes
-    cout << "--- STATUS ACUMULADO FIN DE EXECUCIÓN ---";
-    RastreadorMemoria::ReporteEficiencia();
+    delete albumVacaciones;
+    delete fPlaya;
+    delete fHotel;
 
-    cout << "==================================================\n";
-    cout << "             FIN DE LA PRUEBA UNITARIA            \n";
-    cout << "==================================================\n";
-
+    cout << "-> Estructuras dinamicas del Heap liberadas correctamente.\n";
     return 0;
 }

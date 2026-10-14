@@ -9,11 +9,13 @@ CONFIG += c++17 cmdline
 SOURCES += \
         RastreadorMemoria.cpp \
         album.cpp \
+        fecha.cpp \
         foto.cpp \
         RedSocial.cpp \
         Usuario.cpp \
         main.cpp \
-        mensaje.cpp
+        mensaje.cpp \
+        mensajeria.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -24,5 +26,7 @@ HEADERS += \
     ListaDinamica.h \
     RastreadorMemoria.h \
     album.h \
+    fecha.h \
     foto.h \
-    mensaje.h
+    mensaje.h \
+    mensajeria.h
