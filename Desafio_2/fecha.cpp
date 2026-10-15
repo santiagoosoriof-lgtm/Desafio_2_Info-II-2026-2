@@ -53,7 +53,7 @@ string Fecha::enteroAStringManual(int numero) {
 // Procesa una cadena "AAAA-MM-DD" y extrae el long AAAAMMDD
 long Fecha::cadenaALongInvertido(const string& fechaCadena) {
     // Validamos que la cadena tenga contenido minimo
-    if (fechaCadena[0] == '\0') return 19010101; // Fecha base por defecto
+    if (fechaCadena.length() < 10) return 19010101; // Fecha base por defecto
 
     // Extraemos manualmente ignorando los separadores '-' o '/'
     int anio = stringAEnteroManual(fechaCadena, 0, 3);
@@ -66,10 +66,11 @@ long Fecha::cadenaALongInvertido(const string& fechaCadena) {
 
 long Fecha::StringNumtoLong(const string& cadenaNumeros){
     long resultado = 0;
-    int i = 0;
+    size_t i = 0;
+    size_t limite = cadenaNumeros.length();
 
     // Recorremos la cadena hasta el final
-    while (cadenaNumeros[i] != '\0') {
+    while (i < limite) {
         RastreadorMemoria::RegistroIteracion();
 
         // Si es un caracter numerico valido, lo guardanmos como long

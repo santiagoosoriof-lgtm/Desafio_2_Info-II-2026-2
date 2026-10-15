@@ -1,5 +1,5 @@
 #include <iostream>
-#include <RastreadorMemoria.h>
+#include "RastreadorMemoria.h"
 using namespace std;
 
     // Inicialización de variables estaticas

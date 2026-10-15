@@ -2,21 +2,20 @@
 #define RASTREADORMEMORIA_H
 
 #include <string>
-using namespace std;
 
 class RastreadorMemoria {
 private:
     static long iteracionesTotales;
     static size_t memoriaAsignadaBytes;
-    static string libreriasEjecutadas; // Almacena el listado de dependencias activas
+    static std::string libreriasEjecutadas; // Almacena el listado de dependencias activas
 
     //Constructor privado para que no se pueda instanciar la clase
     RastreadorMemoria () = delete;
     // Destructor privado no se puede destruir un objeto que no haya sido creado
-    ~RastreadorMemoria() =delete;
+    ~RastreadorMemoria() = delete;
 
 public:
-    static void IniciarSegmento(const string& modulosYLibrerias);
+    static void IniciarSegmento(const std::string& modulosYLibrerias);
     static void RegistroIteracion();
     static void RegistroAsignacionMemoria(size_t bytes);
     static void RegistroLiberacionMemoria(size_t bytes);

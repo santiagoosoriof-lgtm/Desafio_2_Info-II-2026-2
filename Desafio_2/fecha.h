@@ -4,8 +4,6 @@
 #include <string>
 #include <cstddef>
 
-using namespace std;
-
 
 class Fecha {
 private:
@@ -14,21 +12,21 @@ private:
     ~Fecha() = delete;
 
     // Métodos auxiliares manuales para emular funciones de conversión
-    static int stringAEnteroManual(const string& cadena, int inicio, int fin);
-    static string enteroAStringManual(int numero);
+    static int stringAEnteroManual(const std::string& cadena, int inicio, int fin);
+    static std::string enteroAStringManual(int numero);
 
 public:
     //Obtiene la fecha actual
     static long obtenerFechaActual();
 
     // Convierte una cadena "AAAA-MM-DD" o "AAAA/MM/DD" a long numérico AAAAAMMDD
-    static long cadenaALongInvertido(const string& fechaCadena);
+    static long cadenaALongInvertido(const std::string& fechaCadena);
 
     //Convierte una cadena "AAAAMMDD" a long AAAAMMDD
-    static long StringNumtoLong(const string& cadenaNumeros);
+    static long StringNumtoLong(const std::string& cadenaNumeros);
 
     // Convierte el long numérico AAAAAMMDD a formato amigable con el usuario
-    static string longAFormatoHumano(long fechaLong);
+    static std::string longAFormatoHumano(long fechaLong);
 
     // metodo de auditoria
     static const char* getLibreriasUsadas();

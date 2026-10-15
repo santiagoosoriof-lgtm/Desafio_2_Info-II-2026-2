@@ -12,16 +12,10 @@ Usuario::Usuario(std::string username, std::string fechaNacimiento, std::string 
     : username(username), fechaNacimiento(fechaNacimiento), email(email),
     fotoPerfilRuta(fotoPerfilRuta), ciudad(ciudad), pais(pais), fechaInscripcion(fechaInscripcion) {
 
-    int caracteresTotales = 0;
-    std::string campos[] = {username, fechaNacimiento, email, fotoPerfilRuta, ciudad, pais, fechaInscripcion};
+    size_t caracteresTotales = username.length() + fechaNacimiento.length() + email.length() +
+                               fotoPerfilRuta.length() + ciudad.length() + pais.length() + fechaInscripcion.length();
 
-    for(int i = 0; i < 7; i++){
-        int j=0;
-        while(campos[i][j]!= '\0'){
-            caracteresTotales++;
-            j++;
-        }
-    }
+
     this-> bytesOcupados = sizeof(Usuario) + caracteresTotales;
 
 }

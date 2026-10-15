@@ -28,6 +28,10 @@ public:
     int obtenerCantidadUsuarios() const;
     bool cargarUsuariosDesdeArchivo(const std::string& rutaArchivo);
     bool cargarRelacionesDesdeArchivo(const std::string& rutaArchivo);
+    bool cargarSolicitudesDesdeArchivo(const std::string& rutaArchivo);
+    bool guardarSolicitudesEnArchivo(const std::string& rutaArchivo);
+    bool guardarRelacionesEnArchivo(const std::string& rutaArchivo);
+
 
     size_t getMemoria() const;
     static const char* getLibreriasUsadas();

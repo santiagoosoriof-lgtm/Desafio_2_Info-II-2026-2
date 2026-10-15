@@ -3,15 +3,14 @@
 
 #include <string>
 #include <cstddef>
-using namespace std;
 
 
 class Mensaje
 {
 private:
-    string emisor;
-    string receptor;
-    string texto;
+    std::string emisor;
+    std::string receptor;
+    std::string texto;
     long fechaenvio;
     bool leido;
     //Atributo de auditoria
@@ -19,13 +18,13 @@ private:
 
 public:
     Mensaje();
-    Mensaje(const string& emisor, const string& receptor, const string& texto, long fechaenvio);
+    Mensaje(const std::string& emisor, const std::string& receptor, const std::string& texto, long fechaenvio);
     ~Mensaje();
 
     //Getters ans setters
-    string getEmisor() const;
-    string getReceptor() const;
-    string getTexto() const;
+    std::string getEmisor() const;
+    std::string getReceptor() const;
+    std::string getTexto() const;
     long getFechaEnvio() const;
     bool estaleido() const;
     void setLeido(bool estado);

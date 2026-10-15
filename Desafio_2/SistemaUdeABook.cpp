@@ -26,7 +26,10 @@ void SistemaUdeABook::cargarBaseDeDatos() {
     cout << "Cargando datos del sistema UdeABook...\n";
     red.cargarUsuariosDesdeArchivo("usuarios.txt");
     red.cargarRelacionesDesdeArchivo("relaciones.txt");
+    red.cargarSolicitudesDesdeArchivo("solicitudes.txt");
     gestorMensajeria->cargarArchivoMensajes("Mensajes.txt");
+
+
 
     RastreadorMemoria::ReporteEficiencia();
 }
@@ -153,11 +156,14 @@ void SistemaUdeABook::menuAdministrarAmistades() {
 
             // La eliminamos de pendientes
             pendientes.eliminar(indiceElegido);
+            red.guardarSolicitudesEnArchivo("solicitudes.txt"); // se actualiza el archivo de solicitudes de amistad
+            red.guardarRelacionesEnArchivo("relaciones.txt"); // se actualiza el archivo de relaciones
         }
         else if (decision == 2) {
             // Simplemente se borra de la lista de pendientes
             pendientes.eliminar(indiceElegido);
             cout << "\nSolicitud de " << solicitanteElegido->getUsername() << " rechazada exitosamente.\n";
+            red.guardarSolicitudesEnArchivo("solicitudes.txt"); // se actualiza el archivo de solicitudes de amistad
         }
         else {
             cout << "Regresando al menu...\n";
@@ -402,7 +408,9 @@ void SistemaUdeABook::iniciar() {
             cout << "\nRefrescando seleccion de mejores amigos...\n";
         } else if (opcion == 'S' || opcion == 's') {
             cout << "\nGuardando Cambios\n";
-            gestorMensajeria->guardarMensajesEnArchivo("Mensajes.txt");
+            gestorMensajeria->guardarMensajesEnArchivo("Mensajes.txt"); // se actuliza el archivo de mensajes
+            red.guardarSolicitudesEnArchivo("solicitudes.txt"); // se actualiza el archivo de solicitudes de amistad
+
             cout << "\nCerrando sesion en UdeABook... Hasta pronto\n";
         } else {
             cout << "Opcion invalida. Intente de nuevo.\n";

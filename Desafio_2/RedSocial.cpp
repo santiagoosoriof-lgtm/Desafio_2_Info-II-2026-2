@@ -19,6 +19,7 @@ RedSocial::~RedSocial() {
         RastreadorMemoria::RegistroLiberacionMemoria(usuarios.obtener(i)->getMemoria());
         delete usuarios.obtener(i);
     }
+    usuarios.limpiar();
 }
 
 bool RedSocial::agregarUsuario(Usuario* nuevoUsuario) {
@@ -241,6 +242,104 @@ bool RedSocial::cargarRelacionesDesdeArchivo(const std::string& rutaArchivo) {
 
         if (!u1.empty() && !u2.empty()) {
             registrarAmistad(u1, u2);
+        }
+    }
+    archivo.close();
+    return true;
+}
+
+bool RedSocial::cargarSolicitudesDesdeArchivo(const std::string& rutaArchivo) {
+    std::ifstream archivo(rutaArchivo);
+    if (!archivo.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo " << rutaArchivo << std::endl;
+        return false;}
+
+    std::string linea;
+    while (std::getline(archivo, linea)) {
+        RastreadorMemoria::RegistroIteracion();
+        if (linea.empty()) continue;
+
+        std::stringstream ss(linea);
+        std::string solicitanteStr, destinatarioStr;
+
+        std::getline(ss, solicitanteStr, ';');
+        std::getline(ss, destinatarioStr, ';');
+
+        if (!solicitanteStr.empty() && !destinatarioStr.empty()) {
+            // Se buscan los usuarios
+            Usuario* solicitante = buscarUsuario(solicitanteStr);
+            Usuario* destinatario = buscarUsuario(destinatarioStr);
+
+            // si existen agregamos la solicitud la lista de pendientes del destinatario
+            if (solicitante != nullptr && destinatario != nullptr) {
+                destinatario ->agregarSolicitud(solicitante);
+            }
+        }
+    }
+    archivo.close();
+    return true;
+}
+
+
+bool RedSocial::guardarSolicitudesEnArchivo(const std::string& rutaArchivo) {
+    std::ofstream archivo(rutaArchivo);
+    if (!archivo.is_open()) {
+        std::cerr << "Error: No se pudo crear el archivo de solicitudes.\n";
+        return false;
+    }
+
+    int totalUsuarios = usuarios.obtenerTamano();
+
+
+    for (int i = 0; i < totalUsuarios; i++) {
+        RastreadorMemoria::RegistroIteracion();
+        Usuario* user = usuarios.obtener(i);
+
+        if (user != nullptr) {
+            // Buscamos las solicitudes del usuario
+            ListaDinamica<Usuario*>& pendientes = user->getSolicitudesPendientes();
+            int totalPendientes = pendientes.obtenerTamano();
+
+            //Se guardan las solicitudes en espera
+            for (int j = 0; j < totalPendientes; j++) {
+                RastreadorMemoria::RegistroIteracion();
+                Usuario* solicitante = pendientes.obtener(j);
+
+                if (solicitante != nullptr) {
+                    archivo << solicitante->getUsername() << ";"
+                            << user->getUsername() << "\n";
+                }
+            }
+        }
+    }
+    archivo.close();
+    return true;
+}
+
+bool RedSocial::guardarRelacionesEnArchivo(const std::string& rutaArchivo) {
+    std::ofstream archivo(rutaArchivo);
+    if (!archivo.is_open()) {
+        std::cerr << "Error: No se pudo crear el archivo de relaciones.\n";
+        return false;
+    }
+
+    int totalUsuarios = usuarios.obtenerTamano();
+
+    for (int i = 0; i < totalUsuarios; i++) {
+        Usuario* user = usuarios.obtener(i);
+        if (user != nullptr) {
+            ListaDinamica<Usuario*>& amigos = user->getAmigos();
+            int totalAmigos = amigos.obtenerTamano();
+
+            // Guardamos sus relaciones en el formato plano: usuario1;usuario2
+            for (int j = 0; j < totalAmigos; j++) {
+                Usuario* amigo = amigos.obtener(j);
+
+                // Para evitar duplicar la misma relación (A;B y B;A), imponemos un orden alfabético al escribir
+                if (amigo != nullptr && user->getUsername() < amigo->getUsername()) {
+                    archivo << user->getUsername() << ";" << amigo->getUsername() << "\n";
+                }
+            }
         }
     }
     archivo.close();

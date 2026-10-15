@@ -8,34 +8,32 @@ Album::Album() {
     this-> bytesOcupados = sizeof(Album);
 }
 
-Album::Album(string nombre, string rutaRaiz, string privacidad){
+Album::Album(std::string nombre, std::string rutaRaiz, std::string privacidad){
     this-> nombre =nombre;
     this-> rutaRaiz = rutaRaiz;
     this-> privacidad= privacidad;
     this-> indiceActual=-1;
 
-    int caracterescadenas = 0;
-    string atributos[] = {nombre, rutaRaiz, privacidad};
-    for (int i = 0 ; i < 3; i++){
-        int j = 0;
-        while(atributos[i][j] != '\0' ){
-            caracterescadenas++;
-            j++;
-        }
-    }
+    size_t caracterescadenas = nombre.length() + rutaRaiz.length() + privacidad.length();
 
     this-> bytesOcupados = sizeof(Album) + caracterescadenas;
 }
 
-Album::~Album(){}
+Album::~Album(){
+    int totalFotos = fotos.obtenerTamano();
+    for (int i = 0; i < totalFotos; i++) {
+        delete fotos.obtener(i); // Libera la memoria de cada objeto Foto
+    }
+    fotos.limpiar(); // Limpia los nodos de la lista dinámica
+}
 
 //Getters y setters
-string Album::getNombre() const{return this->nombre;}
-string Album::getRuta() const{return this-> rutaRaiz;}
-string Album::getPrivacidad() const{return this-> privacidad;}
+std::string Album::getNombre() const{return this->nombre;}
+std::string Album::getRuta() const{return this-> rutaRaiz;}
+std::string Album::getPrivacidad() const{return this-> privacidad;}
 int Album::getIndice() const{return this-> indiceActual;}
 
-void Album::setPrivacidad(string nuevaPrivacidad){ this-> privacidad = nuevaPrivacidad;}
+void Album::setPrivacidad(std::string nuevaPrivacidad){ this-> privacidad = nuevaPrivacidad;}
 
 // Getters de auditoria
 size_t Album::getMemoria() const{ return this-> bytesOcupados;}
