@@ -19,10 +19,11 @@ Mensaje::Mensaje(const string& emisor, const string& receptor, const string& use
 
     this ->texto = ""; // iniciamos en vacio
     int longitudTexto = 0;
+    size_t tamanoOriginal = usertexto.length();
 
-    //el texto ingresado por el usuario se recorta si es muy largo y se asigna un valor al atributo longitud
-    while(usertexto[longitudTexto] != '\0' && longitudTexto < 512){
-        this ->texto += usertexto[longitudTexto];
+    // El texto ingresado por el usuario se recorta si supera los 512 caracteres
+    while (longitudTexto < tamanoOriginal && longitudTexto < 512) {
+        this->texto += usertexto[longitudTexto];
         longitudTexto++;
     }
     this ->bytesOcupados = sizeof(Mensaje) + longitudTexto;

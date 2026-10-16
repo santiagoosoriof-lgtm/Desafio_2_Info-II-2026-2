@@ -7,22 +7,15 @@ Foto::Foto() {
     this-> likes = 0;
     this-> bytesOcupados = sizeof(Foto);
 }
-Foto::Foto(string fechaCaptura, string rutaAbsoluta, int tamanoArchivoBytes){
+Foto::Foto(std::string fechaCaptura, std::string rutaAbsoluta, int tamanoArchivoBytes){
     this-> fechaCaptura = fechaCaptura;
     this->rutaAbsoluta = rutaAbsoluta;
     this-> tamanoArchivoBytes = tamanoArchivoBytes;
     this-> likes = 0;
     this-> albumDueno = nullptr;
 
-    int caracteresFecha = 0;
-    while(fechaCaptura[caracteresFecha] != '\0'){
-        caracteresFecha++;
-    }
-
-    int caracteresRuta = 0;
-    while(rutaAbsoluta[caracteresRuta] != '\0'){
-        caracteresRuta++;
-    }
+    size_t caracteresFecha = fechaCaptura.length();
+    size_t caracteresRuta = rutaAbsoluta.length();
 
     this-> bytesOcupados = sizeof(Foto) + caracteresFecha + caracteresRuta;
 }
@@ -33,8 +26,8 @@ Foto::~Foto(){
 //Getters y setters
 
 
-string Foto::getFechaCaptura()const { return this->fechaCaptura;}
-string Foto::getRutaAbsoluta() const{return this->rutaAbsoluta;}
+std::string Foto::getFechaCaptura()const { return this->fechaCaptura;}
+std::string Foto::getRutaAbsoluta() const{return this->rutaAbsoluta;}
 int Foto::getTamanoBytes() const{return this->tamanoArchivoBytes;}
 int Foto::getLikes() const{return this->likes;}
 Album* Foto::getAlbumDueno() const{return albumDueno;}

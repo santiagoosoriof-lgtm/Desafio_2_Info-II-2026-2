@@ -3,15 +3,15 @@
 
 #include <string>
 #include <cstddef>
-#include <foto.h>
-#include <ListaDinamica.h>
-using namespace std;
+#include "foto.h"
+#include "ListaDinamica.h"
+
 
 class Album{
 private:
-    string nombre;
-    string rutaRaiz;
-    string privacidad;
+    std::string nombre;
+    std::string rutaRaiz;
+    std::string privacidad;
 
     // lista que contiene punteros a los objetos Foto
     ListaDinamica<Foto*> fotos;
@@ -23,16 +23,16 @@ private:
 public:
     //Construtores y destructor
     Album();
-    Album(string nombre, string rutaRaiz, string privacidad);
+    Album(std::string nombre, std::string rutaRaiz, std::string privacidad);
     ~Album();
 
     //Getters y setters
-    string getNombre() const;
-    string getRuta() const;
-    string getPrivacidad() const;
+    std::string getNombre() const;
+    std::string getRuta() const;
+    std::string getPrivacidad() const;
     int getIndice() const;
 
-    void setPrivacidad(string nuevaPrivacidad);
+    void setPrivacidad(std::string nuevaPrivacidad);
 
     // Getters de auditoria
     size_t getMemoria() const;

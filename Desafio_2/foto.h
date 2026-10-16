@@ -3,14 +3,14 @@
 
 #include <string>
 #include <cstddef>
-using namespace std;
+
 
 class Album; //Declaracion adelantada
 
 class Foto{
 private:
-    string fechaCaptura;
-    string rutaAbsoluta;
+    std::string fechaCaptura;
+    std::string rutaAbsoluta;
     int tamanoArchivoBytes;
     int likes;
     Album* albumDueno; //Album que contiene la foto
@@ -19,14 +19,14 @@ private:
 
 public:
     Foto();
-    Foto(string fechaCaptura, string rutaAbsoluta, int tamanoArchivoBytes);
+    Foto(const std::string fechaCaptura, const std::string rutaAbsoluta, int tamanoArchivoBytes);
     ~Foto();
 
     //Getters y setters
 
 
-    string getFechaCaptura() const;
-    string getRutaAbsoluta() const;
+    std::string getFechaCaptura() const;
+    std::string getRutaAbsoluta() const;
     int getTamanoBytes() const;
     int getLikes() const;
     Album* getAlbumDueno() const;

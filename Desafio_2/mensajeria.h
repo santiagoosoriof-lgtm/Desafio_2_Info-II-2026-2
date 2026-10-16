@@ -7,7 +7,6 @@
 #include "Usuario.h"
 #include "mensaje.h"
 
-using namespace std;
 
 class Mensajeria{
 private:
@@ -23,11 +22,11 @@ public:
     static const char* getLibreriasUsadas();
 
     //metodos de la mensajeria
-    bool cargarArchivoMensajes(const string& rutaArchivo);
-    void enviarMensaje(Usuario *emisor, Usuario *receptor, const string& texto, long fechaEnvio);
-    void getNuevosmsn(const string& usuarioReceptor);
-    void verBandejaCompleta(const string& usuarioReceptor);
-    void buscarporFecha(const string& usuarioReceptor,long fechaInicio, long fechaFin);
+    bool cargarArchivoMensajes(const std::string& rutaArchivo);
+    void enviarMensaje(Usuario *emisor, Usuario *receptor, const std::string& texto, long fechaEnvio);
+    void getNuevosmsn(const std::string& usuarioReceptor);
+    void verBandejaCompleta(const std::string& usuarioReceptor);
+    void buscarporFecha(const std::string& usuarioReceptor,long fechaInicio, long fechaFin);
     bool guardarMensajesEnArchivo(const std::string& rutaArchivo);
 };
 
