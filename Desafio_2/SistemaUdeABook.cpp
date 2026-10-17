@@ -67,15 +67,17 @@ void SistemaUdeABook::menuAdministrarAmistades() {
     if (usuarioActivo == nullptr) return;
 
     RastreadorMemoria::IniciarSegmento(RedSocial::getLibreriasUsadas());
-
+    int op = -1;
+    do{
     cout << "\n==================================================\n";
     cout << "           GESTION DE SOLICITUDES Y AMIGOS       \n";
     cout << "==================================================\n";
     cout << " 1. Enviar solicitud de amistad\n";
-    cout << " 2. Ver y gestionar solicitudes pendientes\n";
+    cout << " 2. Ver y gestionar solicitudes de amistad\n";
+    cout << " 3. Volver al menu principal UdeaBook\n";
     cout << " Su opcion: ";
-    int op;
     cin >> op;
+    if(op < 1 || op > 3 ){cout << "Ingrese una opcion correcta.\n";}
 
     if (op == 1) {
         string destinoUsername;
@@ -92,11 +94,28 @@ void SistemaUdeABook::menuAdministrarAmistades() {
             cout << "[Aviso]: Ya tienes una relacion de amistad activa con " << destinoUsername << ".\n";
         } else {
             Usuario* destinoUser = red.buscarUsuario(destinoUsername);
-            if (destinoUser == nullptr) {
-                cout << "[Error]: El usuario '" << destinoUsername << "' no existe en la red.\n";
-            } else {
-                destinoUser->agregarSolicitud(usuarioActivo);
-                cout << "Solicitud de Amistad enviada exitosamente a " << destinoUsername << "!\n";
+            if(destinoUser == nullptr){
+                cout << "[Error] : El susuario '" << destinoUsername << "' no esta registrado en UdeABook.\n";
+            }else{
+                ListaDinamica<Usuario*>& pendientesDestino = destinoUser->getSolicitudesPendientes();
+                bool yaSolicitado = false;
+
+                for (int i = 0; i < pendientesDestino.obtenerTamano(); i++) {
+                    RastreadorMemoria::RegistroIteracion();
+                    if (pendientesDestino.obtener(i)->getUsername() == usuarioActivo->getUsername()) {
+                        yaSolicitado = true;
+                        break;
+                    }
+                }
+
+                if (yaSolicitado) {
+                    cout << "[Aviso]: Ya le has enviado una solicitud de amistad a " << destinoUsername << " y esta pendiente.\n";
+                } else {
+                    destinoUser->agregarSolicitud(usuarioActivo);
+                    cout << "Solicitud de Amistad enviada exitosamente a " << destinoUsername << "!\n";
+
+                    red.guardarSolicitudesEnArchivo("solicitudes.txt"); //Se registra en el archivo txt
+                }
             }
         }
     }
@@ -105,7 +124,7 @@ void SistemaUdeABook::menuAdministrarAmistades() {
         int totalPendientes = pendientes.obtenerTamano();
 
         if (totalPendientes == 0) {
-            cout << " No tienes solicitudes pendientes por procesar.\n";
+            cout << " No tienes solicitudes pendientes.\n";
             cout << "--------------------------------------------------\n";
             RastreadorMemoria::ReporteEficiencia();
             return;
@@ -125,7 +144,7 @@ void SistemaUdeABook::menuAdministrarAmistades() {
 
         int seleccion = -1;
         do {
-            cout << "\nSeleccione el numero de la solicitud a gestionar (presione 0 para volver): ";
+            cout << "\nSeleccione el numero de la solicitud a gestionar (presione 0 para volver al inicio): ";
             cin >> seleccion;
             RastreadorMemoria::RegistroIteracion();
         } while(seleccion < 0 || seleccion > totalPendientes);
@@ -140,13 +159,15 @@ void SistemaUdeABook::menuAdministrarAmistades() {
 
         int decision = -1;
         do {
-            cout << "\n¿Que desea hacer con la solicitud de " << solicitanteElegido->getUsername() << "?\n";
+            cout << "\n Que desea hacer con la solicitud de " << solicitanteElegido->getUsername() << "?\n";
             cout << " 1. Aceptar solicitud\n";
             cout << " 2. Rechazar solicitud\n";
             cout << " 3. Volver al menu\n";
             cout << " Su opcion: ";
             cin >> decision;
             RastreadorMemoria::RegistroIteracion();
+            if(decision < 0 || decision > 3){
+                cout << "Ingrese una opcion correcta\n";}
         } while(decision < 1 || decision > 3);
 
         if (decision == 1) {
@@ -161,9 +182,12 @@ void SistemaUdeABook::menuAdministrarAmistades() {
         else {
             cout << "Regresando al menu...\n";
         }
+    } else if (op == 3){
+        cout << "Regresando al menu Principal UdeABook...\n";
     }
-
     RastreadorMemoria::ReporteEficiencia();
+    RastreadorMemoria::RegistroIteracion();
+    }while(op < 1 || op > 3);
 }
 
 void SistemaUdeABook::menuVisitarPerfilAmigo() {
@@ -300,15 +324,18 @@ void SistemaUdeABook::menuAdministrarMensajes() {
     if (usuarioActivo == nullptr) return;
 
     RastreadorMemoria::IniciarSegmento(Mensajeria::getLibreriasUsadas());
-
+    int op = -1;
+    do{
     cout << "\n--- ADMINISTRAR MENSAJES ---\n";
     cout << "1. Enviar mensaje\n";
     cout << "2. Ver notificaciones (Nuevos)\n";
     cout << "3. Ver Bandeja de entrada completa\n";
     cout << "4. Buscar mensajes por rango de fechas\n";
+    cout << "5. Menu Inicial UdeABook\n";
     cout << "Opcion: ";
-    int op;
     cin >> op;
+    if(op < 0 || op > 5){
+    cout << "Ingrese una opcion correcta\n";}
 
     if (op == 1) {
         string destinatario, texto;
@@ -348,6 +375,8 @@ void SistemaUdeABook::menuAdministrarMensajes() {
     }
 
     RastreadorMemoria::ReporteEficiencia();
+    RastreadorMemoria::RegistroIteracion();
+    }while( op < 0 || op > 5);
 }
 
 void SistemaUdeABook::iniciar() {

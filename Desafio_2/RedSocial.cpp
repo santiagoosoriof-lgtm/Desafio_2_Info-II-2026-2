@@ -16,8 +16,11 @@ RedSocial::~RedSocial() {
     RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
 
     for (int i = 0; i < usuarios.obtenerTamano(); i++) {
-        RastreadorMemoria::RegistroLiberacionMemoria(usuarios.obtener(i)->getMemoria());
-        delete usuarios.obtener(i);
+        Usuario* u = usuarios.obtener(i);
+        if(u != nullptr){
+        RastreadorMemoria::RegistroLiberacionMemoria(u->getMemoria());
+        delete u;
+        }
     }
     usuarios.limpiar();
 }
@@ -335,7 +338,7 @@ bool RedSocial::guardarRelacionesEnArchivo(const std::string& rutaArchivo) {
             for (int j = 0; j < totalAmigos; j++) {
                 Usuario* amigo = amigos.obtener(j);
 
-                // Para evitar duplicar la misma relación (A;B y B;A), imponemos un orden alfabético al escribir
+                // Para evitar duplicar la misma relacion (A;B y B;A), imponemos un orden alfabetico al escribir
                 if (amigo != nullptr && user->getUsername() < amigo->getUsername()) {
                     archivo << user->getUsername() << ";" << amigo->getUsername() << "\n";
                 }

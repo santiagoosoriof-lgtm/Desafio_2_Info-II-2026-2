@@ -1,2 +1,8 @@
-juan_perez;santiago_gomez;Hola Santi, Como estas? que haces?;20260100;1
+juan_perez;santiago_gomez;Hola Santi, Como estas? que haces?;20261006;1
 santiago_gomez;juan_perez;asdfakjnvlksdangsdofvg;20261014;1
+juan_perez;santiago_gomez;Hola Santi como estas?;20261015;0
+juan_perez;maria_lopez;Hola Maria como te ha ido?;20261015;1
+juan_perez;juan_perez;por que no respondes?;20261015;1
+juan_perez;maria_lopez;como estas chica?;20261015;0
+juan_perez;maria_lopez;Hola MAria;20261015;0
+juan_perez;maria_lopez;Hola Maria;20261015;0
