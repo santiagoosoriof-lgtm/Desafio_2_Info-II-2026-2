@@ -20,79 +20,17 @@ SistemaUdeABook::~SistemaUdeABook() {
     delete gestorMensajeria;
 }
 
-// Generador auxiliar de dataset masivo
-void generarDatasetMasivo1000() {
-    ifstream fCheck("usuarios.txt");
-    bool necesitaGenerar = false;
-
-    if (!fCheck.is_open()) {
-        necesitaGenerar = true;
-    } else {
-        int lineas = 0;
-        string l;
-        while (getline(fCheck, l)) lineas++;
-        fCheck.close();
-        if (lineas < 1000) necesitaGenerar = true;
-    }
-
-    if (necesitaGenerar) {
-        cout << "Generando dataset masivo de 1,000 usuarios y archivos planos...\n";
-
-        // 1. Crear usuarios.txt
-        ofstream fUser("usuarios.txt");
-        for (int i = 0; i < 1000; i++) {
-            fUser << "user_" << i << ";2000-01-01;user" << i << "@udea.edu.co;/users/udeabook/user_" << i
-                  << "/albums/profile.png;Medellin;Colombia;2024-01-01\n";
-        }
-        fUser.close();
-
-        // 2. Crear relaciones.txt
-        ofstream fRel("relaciones.txt");
-        for (int i = 0; i < 1000; i++) {
-            int numAmigos = 5 + (rand() % 10);
-            for (int a = 0; a < numAmigos; a++) {
-                int amigoIdx = rand() % 1000;
-                if (amigoIdx != i) {
-                    fRel << "user_" << i << ";user_" << amigoIdx << "\n";
-                }
-            }
-        }
-        fRel.close();
-
-        // 3. Crear solicitudes.txt
-        ofstream fSol("solicitudes.txt");
-        if (fSol.is_open()) {
-            fSol << "user_1;user_0\n";
-            fSol << "user_2;user_0\n";
-            fSol.close();
-        }
-
-        // 4. Crear Galerias.txt
-        ofstream fGal("Galerias.txt");
-        if (fGal.is_open()) {
-            fGal << "user_0;Vacaciones;Publico;/users/udeabook/user_0/albums/Vacaciones/playa.png;2026-10-01;1024;5\n";
-            fGal << "user_0;Vacaciones;Publico;/users/udeabook/user_0/albums/Vacaciones/hotel.png;2026-10-02;2048;12\n";
-            fGal.close();
-        }
-
-        // 5. Crear Mensajes.txt
-        ofstream fMsn("Mensajes.txt");
-        if (fMsn.is_open()) {
-            fMsn << "user_1;user_0;Hola user_0, bienvenido a UdeABook!;20261010;0\n";
-            fMsn.close();
-        }
-
-        cout << "¡Dataset masivo de 1,000 usuarios y los 5 archivos planos creados exitosamente!\n";
-    }
-}
-
+// Carga directa de la base de datos desde archivos planos
 void SistemaUdeABook::cargarBaseDeDatos() {
     RastreadorMemoria::IniciarSegmento("RedSocial.h, <fstream>, <sstream>");
 
-    cout << "Cargando datos del sistema UdeABook...\n";
-    generarDatasetMasivo1000(); // Revisa y genera los 5 archivos si faltan
+    cout << "Cargando datos del sistema UdeABook desde archivos planos...\n";
+
+    // Cargar usuarios y red de relaciones
     red.cargarUsuariosDesdeArchivo("usuarios.txt");
     red.cargarRelacionesDesdeArchivo("relaciones.txt");
+
+    // Cargar historial de mensajería
     if (gestorMensajeria != nullptr) {
         gestorMensajeria->cargarArchivoMensajes("Mensajes.txt");
     }
