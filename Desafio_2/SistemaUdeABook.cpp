@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <string>
 
 using namespace std;
 
@@ -20,22 +21,79 @@ SistemaUdeABook::~SistemaUdeABook() {
     delete gestorMensajeria;
 }
 
-// Carga directa de la base de datos desde archivos planos
+// Generador de dataset masivo si no existen los archivos planos
+void generarDatasetMasivo1000() {
+    ifstream fCheck("usuarios.txt");
+    bool necesitaGenerar = false;
+
+    if (!fCheck.is_open()) {
+        necesitaGenerar = true;
+    } else {
+        int lineas = 0;
+        string l;
+        while (getline(fCheck, l)) lineas++;
+        fCheck.close();
+        if (lineas < 1000) necesitaGenerar = true;
+    }
+
+    if (necesitaGenerar) {
+        cout << "Generando dataset masivo de 1,000 usuarios y archivos planos...\n";
+
+        // 1. usuarios.txt
+        ofstream fUser("usuarios.txt");
+        for (int i = 0; i < 1000; i++) {
+            fUser << "user_" << i << ";2000-01-01;user" << i << "@udea.edu.co;/users/udeabook/user_" << i
+                  << "/albums/profile.png;Medellin;Colombia;2024-01-01\n";
+        }
+        fUser.close();
+
+        // 2. relaciones.txt
+        ofstream fRel("relaciones.txt");
+        for (int i = 0; i < 1000; i++) {
+            int numAmigos = 5 + (rand() % 10);
+            for (int a = 0; a < numAmigos; a++) {
+                int amigoIdx = rand() % 1000;
+                if (amigoIdx != i) {
+                    fRel << "user_" << i << ";user_" << amigoIdx << "\n";
+                }
+            }
+        }
+        fRel.close();
+
+        // 3. solicitudes.txt
+        ofstream fSol("solicitudes.txt");
+        if (fSol.is_open()) {
+            fSol << "user_1;user_0\n";
+            fSol << "user_2;user_0\n";
+            fSol.close();
+        }
+
+        // 4. Galerias.txt
+        ofstream fGal("Galerias.txt");
+        if (fGal.is_open()) {
+            fGal << "user_0;Vacaciones;Publico;/users/udeabook/user_0/albums/Vacaciones/playa.png;2026-10-01;1024;5\n";
+            fGal << "user_0;Vacaciones;Publico;/users/udeabook/user_0/albums/Vacaciones/hotel.png;2026-10-02;2048;12\n";
+            fGal.close();
+        }
+
+        // 5. Mensajes.txt
+        ofstream fMsn("Mensajes.txt");
+        if (fMsn.is_open()) {
+            fMsn << "user_1;user_0;Hola user_0, bienvenido a UdeABook!;20261010;0\n";
+            fMsn.close();
+        }
+
+        cout << "¡Dataset masivo de 1,000 usuarios creado exitosamente!\n";
+    }
+}
+
 void SistemaUdeABook::cargarBaseDeDatos() {
-    RastreadorMemoria::IniciarSegmento("RedSocial.h, <fstream>, <sstream>");
-
-    cout << "Cargando datos del sistema UdeABook desde archivos planos...\n";
-
-    // Cargar usuarios y red de relaciones
+    generarDatasetMasivo1000();
     red.cargarUsuariosDesdeArchivo("usuarios.txt");
     red.cargarRelacionesDesdeArchivo("relaciones.txt");
-
-    // Cargar historial de mensajería
     if (gestorMensajeria != nullptr) {
         gestorMensajeria->cargarArchivoMensajes("Mensajes.txt");
     }
-
-    RastreadorMemoria::ReporteEficiencia();
 }
 
 void SistemaUdeABook::mostrarMejoresAmigos() {
@@ -67,17 +125,24 @@ void SistemaUdeABook::menuAdministrarAmistades() {
     if (usuarioActivo == nullptr) return;
 
     RastreadorMemoria::IniciarSegmento(RedSocial::getLibreriasUsadas());
-    int op = -1;
-    do{
+
     cout << "\n==================================================\n";
     cout << "           GESTION DE SOLICITUDES Y AMIGOS       \n";
     cout << "==================================================\n";
     cout << " 1. Enviar solicitud de amistad\n";
-    cout << " 2. Ver y gestionar solicitudes de amistad\n";
-    cout << " 3. Volver al menu principal UdeaBook\n";
+    cout << " 2. Ver y gestionar solicitudes pendientes\n";
     cout << " Su opcion: ";
+    int op;
     cin >> op;
-    if(op < 1 || op > 3 ){cout << "Ingrese una opcion correcta.\n";}
+
+    // Proteccion contra entrada invalida en cin (evita congelamiento)
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore(10000, '\n');
+        cout << "[Error]: Debe ingresar un numero valido.\n";
+        RastreadorMemoria::ReporteEficiencia();
+        return;
+    }
 
     if (op == 1) {
         string destinoUsername;
@@ -94,28 +159,11 @@ void SistemaUdeABook::menuAdministrarAmistades() {
             cout << "[Aviso]: Ya tienes una relacion de amistad activa con " << destinoUsername << ".\n";
         } else {
             Usuario* destinoUser = red.buscarUsuario(destinoUsername);
-            if(destinoUser == nullptr){
-                cout << "[Error] : El susuario '" << destinoUsername << "' no esta registrado en UdeABook.\n";
-            }else{
-                ListaDinamica<Usuario*>& pendientesDestino = destinoUser->getSolicitudesPendientes();
-                bool yaSolicitado = false;
-
-                for (int i = 0; i < pendientesDestino.obtenerTamano(); i++) {
-                    RastreadorMemoria::RegistroIteracion();
-                    if (pendientesDestino.obtener(i)->getUsername() == usuarioActivo->getUsername()) {
-                        yaSolicitado = true;
-                        break;
-                    }
-                }
-
-                if (yaSolicitado) {
-                    cout << "[Aviso]: Ya le has enviado una solicitud de amistad a " << destinoUsername << " y esta pendiente.\n";
-                } else {
-                    destinoUser->agregarSolicitud(usuarioActivo);
-                    cout << "Solicitud de Amistad enviada exitosamente a " << destinoUsername << "!\n";
-
-                    red.guardarSolicitudesEnArchivo("solicitudes.txt"); //Se registra en el archivo txt
-                }
+            if (destinoUser == nullptr) {
+                cout << "[Error]: El usuario '" << destinoUsername << "' no existe en la red.\n";
+            } else {
+                destinoUser->agregarSolicitud(usuarioActivo);
+                cout << "¡Solicitud de amistad enviada exitosamente a " << destinoUsername << "!\n";
             }
         }
     }
@@ -124,7 +172,7 @@ void SistemaUdeABook::menuAdministrarAmistades() {
         int totalPendientes = pendientes.obtenerTamano();
 
         if (totalPendientes == 0) {
-            cout << " No tienes solicitudes pendientes.\n";
+            cout << " No tienes solicitudes pendientes por procesar.\n";
             cout << "--------------------------------------------------\n";
             RastreadorMemoria::ReporteEficiencia();
             return;
@@ -144,12 +192,21 @@ void SistemaUdeABook::menuAdministrarAmistades() {
 
         int seleccion = -1;
         do {
-            cout << "\nSeleccione el numero de la solicitud a gestionar (presione 0 para volver al inicio): ";
+            cout << "\nSeleccione el numero de la solicitud a gestionar (presione 0 para volver): ";
             cin >> seleccion;
-            RastreadorMemoria::RegistroIteracion();
-        } while(seleccion < 0 || seleccion > totalPendientes);
 
-        if(seleccion == 0) {
+            if (cin.fail()) {
+                cin.clear();
+                cin.ignore(10000, '\n');
+                seleccion = -1;
+                cout << "[Error]: Ingrese un numero valido.\n";
+                continue;
+            }
+
+            RastreadorMemoria::RegistroIteracion();
+        } while (seleccion < 0 || seleccion > totalPendientes);
+
+        if (seleccion == 0) {
             RastreadorMemoria::ReporteEficiencia();
             return;
         }
@@ -159,16 +216,23 @@ void SistemaUdeABook::menuAdministrarAmistades() {
 
         int decision = -1;
         do {
-            cout << "\n Que desea hacer con la solicitud de " << solicitanteElegido->getUsername() << "?\n";
+            cout << "\n¿Que desea hacer con la solicitud de " << solicitanteElegido->getUsername() << "?\n";
             cout << " 1. Aceptar solicitud\n";
             cout << " 2. Rechazar solicitud\n";
             cout << " 3. Volver al menu\n";
             cout << " Su opcion: ";
             cin >> decision;
+
+            if (cin.fail()) {
+                cin.clear();
+                cin.ignore(10000, '\n');
+                decision = -1;
+                cout << "[Error]: Ingrese un numero valido.\n";
+                continue;
+            }
+
             RastreadorMemoria::RegistroIteracion();
-            if(decision < 0 || decision > 3){
-                cout << "Ingrese una opcion correcta\n";}
-        } while(decision < 1 || decision > 3);
+        } while (decision < 1 || decision > 3);
 
         if (decision == 1) {
             red.registrarAmistad(usuarioActivo->getUsername(), solicitanteElegido->getUsername());
@@ -179,15 +243,9 @@ void SistemaUdeABook::menuAdministrarAmistades() {
             pendientes.eliminar(indiceElegido);
             cout << "\nSolicitud de " << solicitanteElegido->getUsername() << " rechazada exitosamente.\n";
         }
-        else {
-            cout << "Regresando al menu...\n";
-        }
-    } else if (op == 3){
-        cout << "Regresando al menu Principal UdeABook...\n";
     }
+
     RastreadorMemoria::ReporteEficiencia();
-    RastreadorMemoria::RegistroIteracion();
-    }while(op < 1 || op > 3);
 }
 
 void SistemaUdeABook::menuVisitarPerfilAmigo() {
@@ -234,7 +292,16 @@ void SistemaUdeABook::menuVisitarPerfilAmigo() {
     do {
         cout << "\nSeleccione el numero del album que desea abrir (presione 0 para salir): ";
         cin >> seleccion;
-    } while(seleccion < 0 || seleccion > totalAlbumes);
+
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            seleccion = -1;
+            cout << "[Error]: Ingrese un numero valido.\n";
+            continue;
+        }
+
+    } while (seleccion < 0 || seleccion > totalAlbumes);
 
     if (seleccion == 0) {
         cout << "Saliendo al menu principal...\n";
@@ -243,52 +310,56 @@ void SistemaUdeABook::menuVisitarPerfilAmigo() {
     }
 
     Album* albumSeleccionado = amigo->getAlbumes().obtener(seleccion - 1);
-    if(albumSeleccionado->getPrivacidad() == "Privado"){
-        cout << "El album seleccionado es privado\n";
-    } else {
-        if (albumSeleccionado->cantidadFotos() == 0) {
-            cout << "\n[Aviso]: El album '" << albumSeleccionado->getNombre() << "' esta vacio.\n";
-            RastreadorMemoria::ReporteEficiencia();
-            return;
-        }
 
-        char controlCarrusel = ' ';
-        while (controlCarrusel != 'M' && controlCarrusel != 'm') {
-            RastreadorMemoria::RegistroIteracion();
-
-            Foto* fotoActual = albumSeleccionado->obtenerFotoActual();
-
-            cout << "\n--------------------------------------------------\n";
-            cout << " ALBUM: " << albumSeleccionado->getNombre() << " (Visualizando contenido)\n";
-            cout << "--------------------------------------------------\n";
-            cout << " -> Ruta Logica Linux: " << fotoActual->getRutaAbsoluta() << "\n";
-            cout << " -> Capturada el:      " << Fecha::longAFormatoHumano(Fecha::cadenaALongInvertido(fotoActual->getFechaCaptura())) << "\n";
-            cout << " -> Likes actuales:    " << fotoActual->getLikes() << "\n";
-            cout << "--------------------------------------------------\n";
-            cout << " [A] Anterior  //  [S] Siguiente  //  [L] Dar Like  //  [U] Quitar Like  //  [M] Volver a Menu\n";
-            cout << " Seleccione accion: ";
-            cin >> controlCarrusel;
-
-            if (controlCarrusel == 'A' || controlCarrusel == 'a') {
-                albumSeleccionado->fotoAnterior();
-                cout << "Retrocediendo...\n";
-            } else if (controlCarrusel == 'S' || controlCarrusel == 's') {
-                albumSeleccionado->fotoSiguiente();
-                cout << "Avanzando...\n";
-            } else if (controlCarrusel == 'L' || controlCarrusel == 'l') {
-                fotoActual->setLike();
-                cout << "Le diste like a la foto!\n";
-            } else if(controlCarrusel == 'U' || controlCarrusel == 'u'){
-                fotoActual->setUnlike();
-                cout << "Le quitaste el like a la foto!\n";
-            } else if (controlCarrusel != 'M' && controlCarrusel != 'm') {
-                cout << "Accion no valida.\n";
-            }
-        }
-
-        cout << "\nCerrando galeria multimedia...\n";
+    // Control de privacidad del Album
+    if (albumSeleccionado->getPrivacidad() == "Privado") {
+        cout << "\n[Aviso]: El album seleccionado es Privado y no puede ser visto.\n";
         RastreadorMemoria::ReporteEficiencia();
+        return;
     }
+
+    if (albumSeleccionado->cantidadFotos() == 0) {
+        cout << "\n[Aviso]: El album '" << albumSeleccionado->getNombre() << "' esta vacio.\n";
+        RastreadorMemoria::ReporteEficiencia();
+        return;
+    }
+
+    char controlCarrusel = ' ';
+    while (controlCarrusel != 'M' && controlCarrusel != 'm') {
+        RastreadorMemoria::RegistroIteracion();
+
+        Foto* fotoActual = albumSeleccionado->obtenerFotoActual();
+
+        cout << "\n--------------------------------------------------\n";
+        cout << " ALBUM: " << albumSeleccionado->getNombre() << " (Visualizando contenido)\n";
+        cout << "--------------------------------------------------\n";
+        cout << " -> Ruta Logica: " << fotoActual->getRutaAbsoluta() << "\n";
+        cout << " -> Capturada el: " << Fecha::longAFormatoHumano(Fecha::cadenaALongInvertido(fotoActual->getFechaCaptura())) << "\n";
+        cout << " -> Likes actuales: " << fotoActual->getLikes() << "\n";
+        cout << "--------------------------------------------------\n";
+        cout << " [A] Anterior  //  [S] Siguiente  //  [L] Dar Like  //  [U] Quitar Like  //  [M] Volver a Menu\n";
+        cout << " Seleccione accion: ";
+        cin >> controlCarrusel;
+
+        if (controlCarrusel == 'A' || controlCarrusel == 'a') {
+            albumSeleccionado->fotoAnterior();
+            cout << "Retrocediendo...\n";
+        } else if (controlCarrusel == 'S' || controlCarrusel == 's') {
+            albumSeleccionado->fotoSiguiente();
+            cout << "Avanzando...\n";
+        } else if (controlCarrusel == 'L' || controlCarrusel == 'l') {
+            fotoActual->setLike();
+            cout << "¡Le diste like a la foto!\n";
+        } else if (controlCarrusel == 'U' || controlCarrusel == 'u') {
+            fotoActual->setUnlike();
+            cout << "¡Le quitaste el like a la foto!\n";
+        } else if (controlCarrusel != 'M' && controlCarrusel != 'm') {
+            cout << "Accion no valida.\n";
+        }
+    }
+
+    cout << "\nCerrando galeria multimedia...\n";
+    RastreadorMemoria::ReporteEficiencia();
 }
 
 void SistemaUdeABook::menuVerSugerenciasK() {
@@ -299,6 +370,12 @@ void SistemaUdeABook::menuVerSugerenciasK() {
     int k;
     cout << "\nIngrese la cantidad K de sugerencias a consultar (1-20): ";
     cin >> k;
+
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore(10000, '\n');
+        k = 5; // Valor por defecto ante error de cin
+    }
 
     if (k < 1) k = 1;
     if (k > 20) k = 20;
@@ -324,35 +401,63 @@ void SistemaUdeABook::menuAdministrarMensajes() {
     if (usuarioActivo == nullptr) return;
 
     RastreadorMemoria::IniciarSegmento(Mensajeria::getLibreriasUsadas());
-    int op = -1;
-    do{
-    cout << "\n--- ADMINISTRAR MENSAJES ---\n";
-    cout << "1. Enviar mensaje\n";
-    cout << "2. Ver notificaciones (Nuevos)\n";
-    cout << "3. Ver Bandeja de entrada completa\n";
-    cout << "4. Buscar mensajes por rango de fechas\n";
-    cout << "5. Menu Inicial UdeABook\n";
-    cout << "Opcion: ";
+
+    cout << "\n==================================================\n";
+    cout << "              ADMINISTRAR MENSAJES                \n";
+    cout << "==================================================\n";
+    cout << " 1. Enviar mensaje\n";
+    cout << " 2. Ver notificaciones (Nuevos sin leer)\n";
+    cout << " 3. Ver Bandeja de entrada / Historial completo\n";
+    cout << " 4. Buscar mensajes por rango de fechas\n";
+    cout << " Su opcion: ";
+    int op;
     cin >> op;
-    if(op < 0 || op > 5){
-    cout << "Ingrese una opcion correcta\n";}
+
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore(10000, '\n');
+        cout << "[Error]: Debe ingresar una opcion numerica valida.\n";
+        RastreadorMemoria::ReporteEficiencia();
+        return;
+    }
 
     if (op == 1) {
         string destinatario, texto;
         cout << "Destinatario (username): ";
         cin >> destinatario;
+
         cout << "Texto (max 512 caracteres): ";
         cin.ignore();
         getline(cin, texto);
 
-        Usuario* receptor = red.buscarUsuario(destinatario);
+        // Validacion de mensaje vacio o de solo espacios
+        bool esSoloEspacios = true;
+        for (size_t i = 0; i < texto.length(); i++) {
+            if (texto[i] != ' ' && texto[i] != '\t' && texto[i] != '\r' && texto[i] != '\n') {
+                esSoloEspacios = false;
+                break;
+            }
+        }
 
+        if (texto.empty() || esSoloEspacios) {
+            cout << "\n[Error]: No se permite enviar mensajes vacios.\n";
+            RastreadorMemoria::ReporteEficiencia();
+            return;
+        }
+
+        if (destinatario == usuarioActivo->getUsername()) {
+            cout << "\n[Aviso]: No puedes enviarte un mensaje a ti mismo.\n";
+            RastreadorMemoria::ReporteEficiencia();
+            return;
+        }
+
+        Usuario* receptor = red.buscarUsuario(destinatario);
         if (receptor == nullptr) {
-            cout << "[Error]: El usuario destinatario no existe en UdeABook.\n";
+            cout << "\n[Error]: El usuario destinatario '" << destinatario << "' no existe en UdeABook.\n";
         } else {
             long fechaHoy = Fecha::obtenerFechaActual();
             gestorMensajeria->enviarMensaje(usuarioActivo, receptor, texto, fechaHoy);
-            cout << "Mensaje enviado exitosamente.\n";
+            cout << "\n¡Mensaje enviado exitosamente a " << destinatario << "!\n";
         }
 
     } else if (op == 2) {
@@ -375,8 +480,6 @@ void SistemaUdeABook::menuAdministrarMensajes() {
     }
 
     RastreadorMemoria::ReporteEficiencia();
-    RastreadorMemoria::RegistroIteracion();
-    }while( op < 0 || op > 5);
 }
 
 void SistemaUdeABook::iniciar() {
@@ -422,11 +525,11 @@ void SistemaUdeABook::iniciar() {
         } else if (opcion == 'N' || opcion == 'n') {
             cout << "\nRefrescando seleccion de mejores amigos...\n";
         } else if (opcion == 'S' || opcion == 's') {
-            cout << "\nGuardando Cambios\n";
+            cout << "\nGuardando Cambios...\n";
             if (gestorMensajeria != nullptr) {
                 gestorMensajeria->guardarMensajesEnArchivo("Mensajes.txt");
             }
-            cout << "\nCerrando sesion en UdeABook... Hasta pronto\n";
+            cout << "Cerrando sesion en UdeABook... ¡Hasta pronto!\n";
         } else {
             cout << "Opcion invalida. Intente de nuevo.\n";
         }

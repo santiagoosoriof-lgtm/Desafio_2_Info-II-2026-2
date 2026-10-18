@@ -5,21 +5,23 @@
 #include <fstream>
 #include <sstream>
 
-// Constructor: Ya no crea la matriz de un millon de ceros en RAM
+using namespace std;
+
+// Constructor: Inicializa la red y audita su tamaño base
 RedSocial::RedSocial(int capacidad) : capacidadMaxima(capacidad) {
     this->bytesOcupados = sizeof(RedSocial);
     RastreadorMemoria::RegistroAsignacionMemoria(this->bytesOcupados);
 }
 
-// Destructor: Libera los usuarios sin necesidad de destruir matrices dinamicas pesadas
+// Destructor: Libera los usuarios y la lista dinámica
 RedSocial::~RedSocial() {
     RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
 
     for (int i = 0; i < usuarios.obtenerTamano(); i++) {
         Usuario* u = usuarios.obtener(i);
-        if(u != nullptr){
-        RastreadorMemoria::RegistroLiberacionMemoria(u->getMemoria());
-        delete u;
+        if (u != nullptr) {
+            RastreadorMemoria::RegistroLiberacionMemoria(u->getMemoria());
+            delete u;
         }
     }
     usuarios.limpiar();
@@ -30,7 +32,7 @@ bool RedSocial::agregarUsuario(Usuario* nuevoUsuario) {
         return false;
     }
     if (buscarUsuario(nuevoUsuario->getUsername()) != nullptr) {
-        return false;
+        return false; // Ya existe ese username
     }
     usuarios.agregarAlFinal(nuevoUsuario);
     return true;
@@ -56,7 +58,7 @@ int RedSocial::obtenerIndiceUsuario(const std::string& username) const {
     return -1;
 }
 
-// Registro de amistad directamente en las listas de adyacencia de cada Usuario
+// Registro de amistad bidireccional en las listas de adyacencia de cada Usuario
 bool RedSocial::registrarAmistad(const std::string& user1, const std::string& user2) {
     Usuario* u1 = buscarUsuario(user1);
     Usuario* u2 = buscarUsuario(user2);
@@ -80,7 +82,7 @@ bool RedSocial::sonAmigos(const std::string& user1, const std::string& user2) co
     return false;
 }
 
-// Contar amigos en comun de forma ultra eficiente (solo recorre la lista de amigos reales)
+// Contar amigos en común recorriendo la lista de amigos reales O(amigos)
 int RedSocial::contarAmigosEnComun(const std::string& user1, const std::string& user2) const {
     RedSocial* self = const_cast<RedSocial*>(this);
     Usuario* u1 = self->buscarUsuario(user1);
@@ -101,7 +103,7 @@ int RedSocial::contarAmigosEnComun(const std::string& user1, const std::string& 
     return comun;
 }
 
-// Algoritmo 1: Sorteo de mejores amigos con probabilidades ponderadas
+// Algoritmo 1: Sorteo de mejores amigos con probabilidades ponderadas (1.0x, 2.5x, 3.5x)
 ListaDinamica<Usuario*> RedSocial::obtenerMejoresAmigosSorteados(const std::string& username) {
     ListaDinamica<Usuario*> seleccionados;
     Usuario* u = buscarUsuario(username);
@@ -189,7 +191,7 @@ int RedSocial::obtenerCantidadUsuarios() const {
 }
 
 bool RedSocial::cargarUsuariosDesdeArchivo(const std::string& rutaArchivo) {
-    std::ifstream archivo(rutaArchivo);
+    std::ifstream archivo(rutaArchivo.c_str());
     if (!archivo.is_open()) {
         std::cerr << "Error: No se pudo abrir el archivo " << rutaArchivo << std::endl;
         return false;
@@ -226,7 +228,7 @@ bool RedSocial::cargarUsuariosDesdeArchivo(const std::string& rutaArchivo) {
 }
 
 bool RedSocial::cargarRelacionesDesdeArchivo(const std::string& rutaArchivo) {
-    std::ifstream archivo(rutaArchivo);
+    std::ifstream archivo(rutaArchivo.c_str());
     if (!archivo.is_open()) {
         std::cerr << "Error: No se pudo abrir el archivo " << rutaArchivo << std::endl;
         return false;
@@ -252,10 +254,11 @@ bool RedSocial::cargarRelacionesDesdeArchivo(const std::string& rutaArchivo) {
 }
 
 bool RedSocial::cargarSolicitudesDesdeArchivo(const std::string& rutaArchivo) {
-    std::ifstream archivo(rutaArchivo);
+    std::ifstream archivo(rutaArchivo.c_str());
     if (!archivo.is_open()) {
         std::cerr << "Error: No se pudo abrir el archivo " << rutaArchivo << std::endl;
-        return false;}
+        return false;
+    }
 
     std::string linea;
     while (std::getline(archivo, linea)) {
@@ -269,13 +272,11 @@ bool RedSocial::cargarSolicitudesDesdeArchivo(const std::string& rutaArchivo) {
         std::getline(ss, destinatarioStr, ';');
 
         if (!solicitanteStr.empty() && !destinatarioStr.empty()) {
-            // Se buscan los usuarios
             Usuario* solicitante = buscarUsuario(solicitanteStr);
             Usuario* destinatario = buscarUsuario(destinatarioStr);
 
-            // si existen agregamos la solicitud la lista de pendientes del destinatario
             if (solicitante != nullptr && destinatario != nullptr) {
-                destinatario ->agregarSolicitud(solicitante);
+                destinatario->agregarSolicitud(solicitante);
             }
         }
     }
@@ -283,9 +284,8 @@ bool RedSocial::cargarSolicitudesDesdeArchivo(const std::string& rutaArchivo) {
     return true;
 }
 
-
 bool RedSocial::guardarSolicitudesEnArchivo(const std::string& rutaArchivo) {
-    std::ofstream archivo(rutaArchivo);
+    std::ofstream archivo(rutaArchivo.c_str());
     if (!archivo.is_open()) {
         std::cerr << "Error: No se pudo crear el archivo de solicitudes.\n";
         return false;
@@ -293,17 +293,14 @@ bool RedSocial::guardarSolicitudesEnArchivo(const std::string& rutaArchivo) {
 
     int totalUsuarios = usuarios.obtenerTamano();
 
-
     for (int i = 0; i < totalUsuarios; i++) {
         RastreadorMemoria::RegistroIteracion();
         Usuario* user = usuarios.obtener(i);
 
         if (user != nullptr) {
-            // Buscamos las solicitudes del usuario
             ListaDinamica<Usuario*>& pendientes = user->getSolicitudesPendientes();
             int totalPendientes = pendientes.obtenerTamano();
 
-            //Se guardan las solicitudes en espera
             for (int j = 0; j < totalPendientes; j++) {
                 RastreadorMemoria::RegistroIteracion();
                 Usuario* solicitante = pendientes.obtener(j);
@@ -320,7 +317,7 @@ bool RedSocial::guardarSolicitudesEnArchivo(const std::string& rutaArchivo) {
 }
 
 bool RedSocial::guardarRelacionesEnArchivo(const std::string& rutaArchivo) {
-    std::ofstream archivo(rutaArchivo);
+    std::ofstream archivo(rutaArchivo.c_str());
     if (!archivo.is_open()) {
         std::cerr << "Error: No se pudo crear el archivo de relaciones.\n";
         return false;
@@ -334,11 +331,10 @@ bool RedSocial::guardarRelacionesEnArchivo(const std::string& rutaArchivo) {
             ListaDinamica<Usuario*>& amigos = user->getAmigos();
             int totalAmigos = amigos.obtenerTamano();
 
-            // Guardamos sus relaciones en el formato plano: usuario1;usuario2
             for (int j = 0; j < totalAmigos; j++) {
                 Usuario* amigo = amigos.obtener(j);
 
-                // Para evitar duplicar la misma relacion (A;B y B;A), imponemos un orden alfabetico al escribir
+                // Filtrado no trivial: se escribe A;B si user1 < user2 para evitar duplicados en el .txt
                 if (amigo != nullptr && user->getUsername() < amigo->getUsername()) {
                     archivo << user->getUsername() << ";" << amigo->getUsername() << "\n";
                 }
