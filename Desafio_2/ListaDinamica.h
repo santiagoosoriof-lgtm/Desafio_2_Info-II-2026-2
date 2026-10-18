@@ -31,9 +31,8 @@ public:
     // Constructor
     ListaDinamica() : primero(nullptr), ultimo(nullptr), tamano(0) {}
 
-    // Destructor: Libera la memoria dinámica para evitar memory leaks
+    // Destructor: Libera la memoria dinamica
     ~ListaDinamica() {
-        limpiar();
     }
 
     // Agrega un elemento al final de la lista

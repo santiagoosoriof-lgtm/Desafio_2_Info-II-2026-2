@@ -10,7 +10,7 @@ private:
     static std::string libreriasEjecutadas; // Almacena el listado de dependencias activas
 
     //Constructor privado para que no se pueda instanciar la clase
-    RastreadorMemoria () = delete;
+    RastreadorMemoria() = delete;
     // Destructor privado no se puede destruir un objeto que no haya sido creado
     ~RastreadorMemoria() = delete;
 

@@ -17,13 +17,15 @@ SistemaUdeABook::SistemaUdeABook(int capacidadRed) : red(capacidadRed), usuarioA
 
 // Destructor
 SistemaUdeABook::~SistemaUdeABook() {
-    delete gestorMensajeria;
+    // Liberamos la memoria que ocupa el objeto gestor de mensajeria
+    if (gestorMensajeria != nullptr) {
+        delete gestorMensajeria;
+        gestorMensajeria = nullptr;
+    }
 }
 
 void SistemaUdeABook::cargarBaseDeDatos() {
     RastreadorMemoria::IniciarSegmento("RedSocial.h, <fstream>, <sstream>");
-
-    cout << "Cargando datos del sistema UdeABook desde archivos planos...\n";
 
     // Cargar usuarios y red de relaciones
     cout << "Cargando datos del sistema UdeABook...\n";
@@ -201,24 +203,24 @@ void SistemaUdeABook::menuVisitarPerfilAmigo() {
 
     RastreadorMemoria::IniciarSegmento(Album::getLibreriasUsadas());
 
-    string amigoUsername;
-    cout << "\nIngrese el username del amigo a visitar: ";
-    cin >> amigoUsername;
+    string usuarioUsername;
+    cout << "\nIngrese el username del usuario a visitar: ";
+    cin >> usuarioUsername;
 
-    if (!red.sonAmigos(usuarioActivo->getUsername(), amigoUsername)) {
-        cout << "Error: Solo puedes visitar perfiles de usuarios que sean tus amigos.\n";
+    Usuario* usuarioDestino = red.buscarUsuario(usuarioUsername);
+    if (usuarioDestino == nullptr) {
+        cout << "Error: El usuario no existe en la plataforma.\n";
         RastreadorMemoria::ReporteEficiencia();
         return;
     }
 
-    Usuario* amigo = red.buscarUsuario(amigoUsername);
-    if (amigo == nullptr) return;
+    bool esAmigo = red.sonAmigos(usuarioActivo->getUsername(), usuarioDestino->getUsername());
 
     cout << "\n==================================================\n";
-    cout << "           PERFIL DE: " << amigo->getUsername() << "\n";
+    cout << "           PERFIL DE: " << usuarioDestino->getUsername() << "\n";
     cout << "==================================================\n";
 
-    int totalAlbumes = amigo->getCantidadAlbums();
+    int totalAlbumes = usuarioDestino->getCantidadAlbums();
 
     if (totalAlbumes == 0) {
         cout << " [Aviso]: Este amigo aun no tiene albumes creados.\n";
@@ -230,7 +232,7 @@ void SistemaUdeABook::menuVisitarPerfilAmigo() {
     cout << " -> Este usuario tiene " << totalAlbumes << " album(es) registrado(s).\n\n";
     for (int i = 0; i < totalAlbumes; i++) {
         RastreadorMemoria::RegistroIteracion();
-        Album* alb = amigo->getAlbumes().obtener(i);
+        Album* alb = usuarioDestino->getAlbumes().obtener(i);
         cout << "   [" << (i + 1) << "] " << alb->getNombre()
              << " (" << alb->cantidadFotos() << " fotos) - [" << alb->getPrivacidad() << "]\n";
     }
@@ -248,54 +250,69 @@ void SistemaUdeABook::menuVisitarPerfilAmigo() {
         return;
     }
 
-    Album* albumSeleccionado = amigo->getAlbumes().obtener(seleccion - 1);
-    if(albumSeleccionado->getPrivacidad() == "Privado"){
+    Album* albumSeleccionado = usuarioDestino->getAlbumes().obtener(seleccion - 1);
+    std::string privacidad = albumSeleccionado->getPrivacidad(); //obtenemos privacidad
+
+
+    if(privacidad == "Privado"){
         cout << "El album seleccionado es privado\n";
     } else {
         if (albumSeleccionado->cantidadFotos() == 0) {
             cout << "\n[Aviso]: El album '" << albumSeleccionado->getNombre() << "' esta vacio.\n";
             RastreadorMemoria::ReporteEficiencia();
             return;
-        }
+        }else if(privacidad == "Amigos" && !esAmigo){
+                cout << "Este album solo es visible para los amigos de " << usuarioDestino->getUsername() << ".\n";
+                RastreadorMemoria::ReporteEficiencia();
+                return;
+        }else {
+            // Si el album es "Publico" o si es de "Amigos"
+            if (albumSeleccionado->cantidadFotos() == 0) {
+                cout << "\n[Aviso]: El album '" << albumSeleccionado->getNombre() << "' esta vacio.\n";
+                RastreadorMemoria::ReporteEficiencia();
+                return;
+            }
 
-        char controlCarrusel = ' ';
-        while (controlCarrusel != 'M' && controlCarrusel != 'm') {
-            RastreadorMemoria::RegistroIteracion();
+            char controlCarrusel = ' ';
+            while (controlCarrusel != 'M' && controlCarrusel != 'm') {
+                RastreadorMemoria::RegistroIteracion();
 
-            Foto* fotoActual = albumSeleccionado->obtenerFotoActual();
+                Foto* fotoActual = albumSeleccionado->obtenerFotoActual();
 
-            cout << "\n--------------------------------------------------\n";
-            cout << " ALBUM: " << albumSeleccionado->getNombre() << " (Visualizando contenido)\n";
-            cout << "--------------------------------------------------\n";
-            cout << " -> Ruta Logica Linux: " << fotoActual->getRutaAbsoluta() << "\n";
-            cout << " -> Capturada el:      " << Fecha::longAFormatoHumano(Fecha::cadenaALongInvertido(fotoActual->getFechaCaptura())) << "\n";
-            cout << " -> Likes actuales:    " << fotoActual->getLikes() << "\n";
-            cout << "--------------------------------------------------\n";
-            cout << " [A] Anterior  //  [S] Siguiente  //  [L] Dar Like  //  [U] Quitar Like  //  [M] Volver a Menu\n";
-            cout << " Seleccione accion: ";
-            cin >> controlCarrusel;
+                cout << "\n--------------------------------------------------\n";
+                cout << " ALBUM: " << albumSeleccionado->getNombre() << " (Visualizando contenido)\n";
+                cout << "--------------------------------------------------\n";
+                cout << " -> Ruta Logica Linux: " << fotoActual->getRutaAbsoluta() << "\n";
+                cout << " -> Capturada el:      " << Fecha::longAFormatoHumano(Fecha::StringNumtoLong(fotoActual->getFechaCaptura())) << "\n";
+                cout << " -> Likes actuales:    " << fotoActual->getLikes() << "\n";
+                cout << "--------------------------------------------------\n";
+                cout << " [A] Anterior  //  [S] Siguiente  //  [L] Dar Like  //  [U] Quitar Like  //  [M] Volver a Menu\n";
+                cout << " Seleccione accion: ";
+                cin >> controlCarrusel;
 
-            if (controlCarrusel == 'A' || controlCarrusel == 'a') {
-                albumSeleccionado->fotoAnterior();
-                cout << "Retrocediendo...\n";
-            } else if (controlCarrusel == 'S' || controlCarrusel == 's') {
-                albumSeleccionado->fotoSiguiente();
-                cout << "Avanzando...\n";
-            } else if (controlCarrusel == 'L' || controlCarrusel == 'l') {
-                fotoActual->setLike();
-                cout << "Le diste like a la foto!\n";
-            } else if(controlCarrusel == 'U' || controlCarrusel == 'u'){
-                fotoActual->setUnlike();
-                cout << "Le quitaste el like a la foto!\n";
-            } else if (controlCarrusel != 'M' && controlCarrusel != 'm') {
-                cout << "Accion no valida.\n";
+                if (controlCarrusel == 'A' || controlCarrusel == 'a') {
+                    albumSeleccionado->fotoAnterior();
+                    cout << "Retrocediendo...\n";
+                } else if (controlCarrusel == 'S' || controlCarrusel == 's') {
+                    albumSeleccionado->fotoSiguiente();
+                    cout << "Avanzando...\n";
+                } else if (controlCarrusel == 'L' || controlCarrusel == 'l') {
+                    fotoActual->setLike();
+                    cout << "Le diste like a la foto!\n";
+                } else if(controlCarrusel == 'U' || controlCarrusel == 'u'){
+                    fotoActual->setUnlike();
+                    cout << "Le quitaste el like a la foto!\n";
+                } else if (controlCarrusel != 'M' && controlCarrusel != 'm') {
+                    cout << "Accion no valida.\n";
+                }
             }
         }
-
         cout << "\nCerrando galeria multimedia...\n";
         RastreadorMemoria::ReporteEficiencia();
+
     }
 }
+
 
 void SistemaUdeABook::menuVerSugerenciasK() {
     if (usuarioActivo == nullptr) return;
@@ -439,6 +456,7 @@ void SistemaUdeABook::iniciar() {
                 gestorMensajeria->guardarMensajesEnArchivo("Mensajes.txt");
             }
             red.guardarSolicitudesEnArchivo("solicitudes.txt");
+            red.guardarAlbumesEnArchivo("albumes.txt");
             cout << "\nCerrando sesion en UdeABook... Hasta pronto\n";
         } else {
             cout << "Opcion invalida. Intente de nuevo.\n";

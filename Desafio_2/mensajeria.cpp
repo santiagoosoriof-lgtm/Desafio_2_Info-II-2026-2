@@ -14,8 +14,6 @@ Mensajeria::Mensajeria() {
 }
 Mensajeria::~Mensajeria(){
 
-    RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
-
     //borramos cada uno de los mensajes en la lista del usuario
     for(int i = 0; i < bandejaMensajes.obtenerTamano(); i++){
         Mensaje* msn = bandejaMensajes.obtener(i);
@@ -25,7 +23,7 @@ Mensajeria::~Mensajeria(){
         }
 
     }
-
+    RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
 }
 
 //metodos de auditoria

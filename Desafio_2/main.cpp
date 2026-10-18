@@ -12,7 +12,7 @@
 void generarDatasetMasivo1000();
 
 int main() {
-   // generarDatasetMasivo1000(); // Solo se corre una vez para crear los archivos de prueba
+    //generarDatasetMasivo1000(); // Solo se corre una vez para crear los archivos de prueba
 
     SistemaUdeABook* sistema = new SistemaUdeABook();
     sistema->iniciar();

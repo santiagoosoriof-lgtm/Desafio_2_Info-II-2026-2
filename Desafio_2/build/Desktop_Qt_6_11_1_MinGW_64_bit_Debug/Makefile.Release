@@ -182,7 +182,6 @@ release/album.o: ../../album.cpp ../../album.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\album.o ..\..\album.cpp
 
 release/fecha.o: ../../fecha.cpp ../../fecha.h \
-release/fecha.o: ../../fecha.cpp ../../fecha.h \
 		../../RastreadorMemoria.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\fecha.o ..\..\fecha.cpp
 
@@ -193,7 +192,10 @@ release/RedSocial.o: ../../RedSocial.cpp ../../RedSocial.h \
 		../../ListaDinamica.h \
 		../../RastreadorMemoria.h \
 		../../Usuario.h \
-		../../mensaje.h
+		../../mensaje.h \
+		../../album.h \
+		../../foto.h \
+		../../fecha.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\RedSocial.o ..\..\RedSocial.cpp
 
 release/Usuario.o: ../../Usuario.cpp ../../Usuario.h \
@@ -207,9 +209,9 @@ release/main.o: ../../main.cpp ../../RedSocial.h \
 		../../RastreadorMemoria.h \
 		../../Usuario.h \
 		../../mensaje.h \
-		../../mensajeria.h \
 		../../album.h \
 		../../foto.h \
+		../../mensajeria.h \
 		../../fecha.h \
 		../../SistemaUdeABook.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\main.o ..\..\main.cpp

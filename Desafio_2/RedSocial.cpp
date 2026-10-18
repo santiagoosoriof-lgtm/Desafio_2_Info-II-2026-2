@@ -14,8 +14,6 @@ RedSocial::RedSocial(int capacidad) : capacidadMaxima(capacidad) {
 
 
 RedSocial::~RedSocial() {
-    RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
-
     for (int i = 0; i < usuarios.obtenerTamano(); i++) {
         Usuario* u = usuarios.obtener(i);
         if(u != nullptr){
@@ -24,6 +22,7 @@ RedSocial::~RedSocial() {
         }
     }
     usuarios.limpiar();
+    RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
 }
 
 bool RedSocial::agregarUsuario(Usuario* nuevoUsuario) {
@@ -431,6 +430,100 @@ bool RedSocial::cargarAlbumesDesdeArchivo(const std::string& rutaArchivo) {
         dueno->getAlbumes().agregarAlFinal(nuevoAlbum);
     }
 
+    archivo.close();
+    return true;
+}
+
+bool RedSocial::guardarAlbumesEnArchivo(const std::string& rutaArchivo) {
+    std::ofstream archivo(rutaArchivo);
+    if (!archivo.is_open()) {
+        std::cerr << "Error: No se pudo crear el archivo de albumes.\n";
+        return false;
+    }
+
+    int totalUsuarios = usuarios.obtenerTamano();
+
+    // recorremos todos los usuarios de la red
+    for (int i = 0; i < totalUsuarios; i++) {
+        RastreadorMemoria::RegistroIteracion();
+        Usuario* user = usuarios.obtener(i);
+        if (user == nullptr) continue;
+
+        ListaDinamica<Album*>& listaAlbumes = user->getAlbumes();
+        int totalAlbumes = listaAlbumes.obtenerTamano();
+
+        // Se recorre cada album del usuario
+        for (int j = 0; j < totalAlbumes; j++) {
+            RastreadorMemoria::RegistroIteracion();
+            Album* alb = listaAlbumes.obtener(j);
+            if (alb == nullptr) continue;
+
+            // extraemos los atributos del album: usuario;nombre;privacidad;rutaRaiz;
+            archivo << user->getUsername() << ";"
+                    << alb->getNombre() << ";"
+                    << alb->getPrivacidad() << ";"
+                    << alb->getRuta() << ";";
+
+            int totalFotos = alb->cantidadFotos();
+            std::string raizAlb = alb->getRuta();
+            size_t tamanoRaiz = 0;
+
+            while (tamanoRaiz < raizAlb.length()) {
+                RastreadorMemoria::RegistroIteracion();
+                tamanoRaiz++;
+            }
+
+            // buscamos las fotos del album identificando los separadores ; o |
+            for (int k = 0; k < totalFotos; k++) {
+                RastreadorMemoria::RegistroIteracion();
+
+                // abrimos cada foto del album
+                alb->fotoSiguiente();
+                Foto* fotoActual = alb->obtenerFotoActual();
+
+                if (fotoActual != nullptr) {
+                    // extraemos la ruta de la foto
+                    std::string rutaCompleta = fotoActual->getRutaAbsoluta();
+
+                    int indiceNombre = 0;
+
+                    // Verificamos de forma segura si la ruta coincide con la raiz
+                    bool coincideRaiz = true;
+                    for (int r = 0; r < tamanoRaiz; r++) {
+                        RastreadorMemoria::RegistroIteracion();
+                        if (rutaCompleta[r] != raizAlb[r]) {
+                            coincideRaiz = false;
+                            break;
+                        }
+                    }
+
+                    // Si coincide, el nombre de la foto empieza justo después de la raiz
+                    if (coincideRaiz) {
+                        indiceNombre = tamanoRaiz;
+                    }
+
+                    // Escribimos el nombre del archivo letra por letra
+                    while (rutaCompleta[indiceNombre] != '\0') {
+                        RastreadorMemoria::RegistroIteracion();
+                        archivo << rutaCompleta[indiceNombre];
+                        indiceNombre++;
+                    }
+
+                    // Escribimos: archivo.png|fecha|tamano|likes
+                    archivo << "|" << fotoActual->getFechaCaptura()
+                            << "|" << fotoActual->getTamanoBytes()
+                            << "|" << fotoActual->getLikes(); //
+
+                    // se separan las fotos con ;
+                    if (k < totalFotos - 1) {
+                        archivo << ";";
+                    }
+                }
+            }
+            // siguiente album
+            archivo << "\n";
+        }
+    }
     archivo.close();
     return true;
 }

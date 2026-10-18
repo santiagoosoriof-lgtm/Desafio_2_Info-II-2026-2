@@ -1,4 +1,5 @@
 #include "Usuario.h"
+#include "album.h"
 #include "RastreadorMemoria.h"
 
 // Constructor por defecto
@@ -55,7 +56,22 @@ Usuario::Usuario(const Usuario& otro) {
 
 // Destructor
 Usuario::~Usuario() {
-    // La liberacion principal de memoria de los usuarios la hace la RedSocial
+    //  borramos los albums que pertenecen al usuario
+    int totalAlbumes = albumes.obtenerTamano();
+    for (int i = 0; i < totalAlbumes; i++) {
+        Album* alb = albumes.obtener(i);
+        if (alb != nullptr) {
+            RastreadorMemoria::RegistroLiberacionMemoria(alb->getMemoria());
+            delete alb;
+        }
+    }
+    // se limpian todas las estructuras de datos
+    albumes.limpiar();
+    mensajesEnviados.limpiar();
+    mensajesRecibidos.limpiar();
+    amigos.limpiar();
+    solicitudesPendientes.limpiar();
+    RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
 }
 
 // Getters

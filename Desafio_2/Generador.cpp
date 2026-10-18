@@ -60,19 +60,19 @@ void generarDatasetMasivo1000() {
             for (int i = 0; i < 150; i++) {
                 // Generamos un album de vacaciones publico
                 fAlb << "user_" << i << ";Vacaciones San Andres;Publico;/media/user_" << i << "/; "
-                     << "playa.png|20261010|5242880;"   // Foto 1: nombre|fecha|peso
-                     << "hotel.png|20261011|3145728;"   // Foto 2
-                     << "buceo.png|20261012|4194304\n"; // Foto 3 (Cierra con salto de línea)
+                     << "playa.png|20261010|5242880|5;"   // Foto 1: nombre|fecha|peso
+                     << "hotel.png|20261011|3145728|0;"   // Foto 2
+                     << "buceo.png|20261012|4194304|10\n"; // Foto 3 (Cierra con salto de línea)
 
                 // Generamos un segundo album amigos
                 fAlb << "user_" << i << ";Recuerdos;Amigos;/secure/user_" << i << "/; "
-                     << "Abuela.png|20260101|1048576;"
-                     << "casa Infancia.png|20260515|2097152\n";
+                     << "Abuela.png|20260101|1048576|0;"
+                     << "casa Infancia.png|20260515|2097152|20\n";
 
                 // Generamos un segundo álbum privado
                 fAlb << "user_" << i << ";Fotos Personales;Privado;/secure/user_" << i << "/; "
-                     << "avatar.png|20260101|1048576;"
-                     << "documento.png|20260515|2097152\n";
+                     << "avatar.png|20260101|1048576|0;"
+                     << "documento.png|20260515|2097152|3\n";
             }
             fAlb.close();
         }
@@ -86,12 +86,12 @@ void generarDatasetMasivo1000() {
             fMsn << "user_2;user_0;¿A que hora es la sustentacion con Anibal?;20261010;1\n";
             fMsn << "user_0;user_1;¡Hola! Si, salgo para la Universidad en 10 minutos;20261014;1\n";
 
-            // (1,500 interacciones)
+            // (1000 interacciones)
             for (int i = 0; i < 1000; i++) {
                 int emisor = rand() % 1000;
                 int receptor = rand() % 1000;
                 if (emisor != receptor) {
-                    // Fechas aletorias en en octubre de 2026 (AAAAMMDD)
+                    // Fechas aletorias en 2026 (AAAAMMDD)
                     int diaAleatorio = 1 + (rand() % 15);
                     int mesAleatorio = 1 + (rand() % 11)*100;
                     long fechaFicticia = 20260000 + mesAleatorio + diaAleatorio;
