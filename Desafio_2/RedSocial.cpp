@@ -7,13 +7,13 @@
 
 using namespace std;
 
-// Constructor: Inicializa la red y audita su tamaño base
+// Constructor
 RedSocial::RedSocial(int capacidad) : capacidadMaxima(capacidad) {
     this->bytesOcupados = sizeof(RedSocial);
     RastreadorMemoria::RegistroAsignacionMemoria(this->bytesOcupados);
 }
 
-// Destructor: Libera los usuarios y la lista dinámica
+// Destructor
 RedSocial::~RedSocial() {
     RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
 
@@ -58,7 +58,6 @@ int RedSocial::obtenerIndiceUsuario(const std::string& username) const {
     return -1;
 }
 
-// Registro de amistad bidireccional en las listas de adyacencia de cada Usuario
 bool RedSocial::registrarAmistad(const std::string& user1, const std::string& user2) {
     Usuario* u1 = buscarUsuario(user1);
     Usuario* u2 = buscarUsuario(user2);
@@ -82,7 +81,6 @@ bool RedSocial::sonAmigos(const std::string& user1, const std::string& user2) co
     return false;
 }
 
-// Contar amigos en común recorriendo la lista de amigos reales O(amigos)
 int RedSocial::contarAmigosEnComun(const std::string& user1, const std::string& user2) const {
     RedSocial* self = const_cast<RedSocial*>(this);
     Usuario* u1 = self->buscarUsuario(user1);
@@ -141,6 +139,8 @@ ListaDinamica<Usuario*> RedSocial::obtenerMejoresAmigosSorteados(const std::stri
 
     for (int s = 0; s < objetivosASeleccionar; s++) {
         RastreadorMemoria::RegistroIteracion();
+        if (sumaTotalPesos <= 0.0001) break;
+
         double dardo = (rand() % 10000 / 10000.0) * sumaTotalPesos;
         double acumulado = 0.0;
 
@@ -149,7 +149,7 @@ ListaDinamica<Usuario*> RedSocial::obtenerMejoresAmigosSorteados(const std::stri
             if (yaSeleccionado[i]) continue;
 
             acumulado += pesos[i];
-            if (dardo <= acumulado) {
+            if (dardo <= acumulado || i == totalAmigos - 1) {
                 seleccionados.agregarAlFinal(amigos.obtener(i));
                 yaSeleccionado[i] = true;
                 sumaTotalPesos -= pesos[i];
@@ -255,10 +255,7 @@ bool RedSocial::cargarRelacionesDesdeArchivo(const std::string& rutaArchivo) {
 
 bool RedSocial::cargarSolicitudesDesdeArchivo(const std::string& rutaArchivo) {
     std::ifstream archivo(rutaArchivo.c_str());
-    if (!archivo.is_open()) {
-        std::cerr << "Error: No se pudo abrir el archivo " << rutaArchivo << std::endl;
-        return false;
-    }
+    if (!archivo.is_open()) return false;
 
     std::string linea;
     while (std::getline(archivo, linea)) {
@@ -286,10 +283,7 @@ bool RedSocial::cargarSolicitudesDesdeArchivo(const std::string& rutaArchivo) {
 
 bool RedSocial::guardarSolicitudesEnArchivo(const std::string& rutaArchivo) {
     std::ofstream archivo(rutaArchivo.c_str());
-    if (!archivo.is_open()) {
-        std::cerr << "Error: No se pudo crear el archivo de solicitudes.\n";
-        return false;
-    }
+    if (!archivo.is_open()) return false;
 
     int totalUsuarios = usuarios.obtenerTamano();
 
@@ -318,10 +312,7 @@ bool RedSocial::guardarSolicitudesEnArchivo(const std::string& rutaArchivo) {
 
 bool RedSocial::guardarRelacionesEnArchivo(const std::string& rutaArchivo) {
     std::ofstream archivo(rutaArchivo.c_str());
-    if (!archivo.is_open()) {
-        std::cerr << "Error: No se pudo crear el archivo de relaciones.\n";
-        return false;
-    }
+    if (!archivo.is_open()) return false;
 
     int totalUsuarios = usuarios.obtenerTamano();
 
@@ -334,7 +325,6 @@ bool RedSocial::guardarRelacionesEnArchivo(const std::string& rutaArchivo) {
             for (int j = 0; j < totalAmigos; j++) {
                 Usuario* amigo = amigos.obtener(j);
 
-                // Filtrado no trivial: se escribe A;B si user1 < user2 para evitar duplicados en el .txt
                 if (amigo != nullptr && user->getUsername() < amigo->getUsername()) {
                     archivo << user->getUsername() << ";" << amigo->getUsername() << "\n";
                 }
@@ -345,10 +335,7 @@ bool RedSocial::guardarRelacionesEnArchivo(const std::string& rutaArchivo) {
     return true;
 }
 
-size_t RedSocial::getMemoria() const {
-    return this->bytesOcupados;
-}
-
+size_t RedSocial::getMemoria() const { return this->bytesOcupados; }
 const char* RedSocial::getLibreriasUsadas() {
     return "RedSocial.h, Usuario.h, ListaDinamica.h, RastreadorMemoria.h, <iostream>, <fstream>, <sstream>, <cstdlib>, <cstddef>";
 }

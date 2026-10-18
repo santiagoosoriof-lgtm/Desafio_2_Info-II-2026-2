@@ -4,21 +4,17 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <cstdlib>
 
 using namespace std;
 
-// Constructor
 Mensajeria::Mensajeria() {
     this->bytesOcupados = sizeof(Mensajeria);
     RastreadorMemoria::RegistroAsignacionMemoria(this->bytesOcupados);
 }
 
-// Destructor
 Mensajeria::~Mensajeria() {
     RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
 
-    // Borramos cada uno de los mensajes en la lista del usuario
     for (int i = 0; i < bandejaMensajes.obtenerTamano(); i++) {
         Mensaje* msn = bandejaMensajes.obtener(i);
         if (msn != nullptr) {
@@ -26,21 +22,15 @@ Mensajeria::~Mensajeria() {
             delete msn;
         }
     }
-    bandejaMensajes.limpiar();
 }
 
-// Métodos de auditoría
-size_t Mensajeria::getMemoria() const {
-    return this->bytesOcupados;
-}
-
+size_t Mensajeria::getMemoria() const { return this->bytesOcupados; }
 const char* Mensajeria::getLibreriasUsadas() {
     return "mensajeria.h, RastreadorMemoria.h, <iostream>, <string>, <cstddef>, ListaDinamica.h, mensaje.h";
 }
 
-// Carga de persistencia desde Mensajes.txt
 bool Mensajeria::cargarArchivoMensajes(const string& rutaArchivo) {
-    ifstream archivo(rutaArchivo.c_str());
+    std::ifstream archivo(rutaArchivo.c_str());
     if (!archivo.is_open()) {
         return false;
     }
@@ -63,7 +53,7 @@ bool Mensajeria::cargarArchivoMensajes(const string& rutaArchivo) {
             long fechaLong = Fecha::StringNumtoLong(fechaStr);
 
             Mensaje* msn = new Mensaje(emisor, receptor, texto, fechaLong);
-            msn->setLeido(leidoStr == "1" || leidoStr == "true");
+            msn->setLeido(leidoStr == "1");
 
             RastreadorMemoria::RegistroAsignacionMemoria(msn->getMemoria());
             bandejaMensajes.agregarAlFinal(msn);
@@ -73,24 +63,20 @@ bool Mensajeria::cargarArchivoMensajes(const string& rutaArchivo) {
     return true;
 }
 
-// Envío de mensaje usando objetos Usuario*
 void Mensajeria::enviarMensaje(Usuario* emisor, Usuario* receptor, const string& texto, long fechaEnvio) {
     if (emisor == nullptr || receptor == nullptr) {
-        cout << "Debe ingresar un emisor y receptor validos." << endl;
+        cout << "Debe ingresar un emisor y receptor válidos." << endl;
         return;
     }
 
-    // Creamos el mensaje en memoria RAM
     Mensaje* nuevomsn = new Mensaje(emisor->getUsername(), receptor->getUsername(), texto, fechaEnvio);
     RastreadorMemoria::RegistroAsignacionMemoria(nuevomsn->getMemoria());
 
-    // Insertar el mensaje en la bandeja general y en las listas de los usuarios
     bandejaMensajes.agregarAlFinal(nuevomsn);
     emisor->getMensajesEnviados().agregarAlFinal(nuevomsn);
     receptor->getMensajesRecibidos().agregarAlFinal(nuevomsn);
 }
 
-// Obtener los nuevos mensajes no leídos
 void Mensajeria::getNuevosmsn(const string& usuarioReceptor) {
     cout << "\n--- MENSAJES NUEVOS (NO LEIDOS) PARA: " << usuarioReceptor << " ---\n";
 
@@ -129,7 +115,7 @@ void Mensajeria::getNuevosmsn(const string& usuarioReceptor) {
     }
 
     if (cantidadEmisores == 0) {
-        cout << "No tienes mensajes nuevos en la bandeja de entrada.\n";
+        cout << "No tienes mensajes nuevos en la bandeja de entrada." << endl;
     } else {
         for (int i = 0; i < cantidadEmisores; i++) {
             cout << " -> " << emisoresUnicos[i] << " (" << conteoNuevos[i] << " mensajes nuevos)\n";
@@ -141,9 +127,8 @@ void Mensajeria::getNuevosmsn(const string& usuarioReceptor) {
     delete[] conteoNuevos;
 }
 
-// Ver bandeja completa con historial
 void Mensajeria::verBandejaCompleta(const string& usuarioReceptor) {
-    cout << "\n--- BANDEJA DE ENTRADA Y CHATS PARA: " << usuarioReceptor << " ---\n";
+    cout << "\n--- BANDEJA DE ENTRADA PARA: " << usuarioReceptor << " ---\n";
 
     int totalmsn = bandejaMensajes.obtenerTamano();
     string* emisoresProcesados = new string[totalmsn];
@@ -179,16 +164,16 @@ void Mensajeria::verBandejaCompleta(const string& usuarioReceptor) {
                     RastreadorMemoria::RegistroIteracion();
                     Mensaje* subMsn = bandejaMensajes.obtener(k);
 
-                    bool esMismaConversacion = (subMsn->getReceptor() == usuarioReceptor && subMsn->getEmisor() == otroUsuario) ||
-                                               (subMsn->getEmisor() == usuarioReceptor && subMsn->getReceptor() == otroUsuario);
+                    bool esEntreAmbos = (subMsn->getReceptor() == usuarioReceptor && subMsn->getEmisor() == otroUsuario) ||
+                                        (subMsn->getEmisor() == usuarioReceptor && subMsn->getReceptor() == otroUsuario);
 
-                    if (esMismaConversacion) {
-                        cout << "   * [" << Fecha::longAFormatoHumano(subMsn->getFechaEnvio()) << "]\n";
-                        if (subMsn->getEmisor() == usuarioReceptor) {
-                            cout << "   (Enviado): " << subMsn->getTexto() << "\n";
-                        } else {
-                            cout << "   (Recibido): " << subMsn->getTexto()
-                            << " [" << (subMsn->estaleido() ? "Leido" : "NUEVO") << "]\n";
+                    if (esEntreAmbos) {
+                        string tipo = (subMsn->getEmisor() == usuarioReceptor) ? "[Enviado]" : "[Recibido]";
+                        cout << "   * " << tipo << " [" << Fecha::longAFormatoHumano(subMsn->getFechaEnvio()) << "]\n";
+                        cout << "     Mensaje : " << subMsn->getTexto()
+                             << " [" << (subMsn->estaleido() ? "Leido" : "NUEVO") << "]\n";
+
+                        if (subMsn->getReceptor() == usuarioReceptor) {
                             subMsn->setLeido(true);
                         }
                         totalMostrados++;
@@ -206,10 +191,8 @@ void Mensajeria::verBandejaCompleta(const string& usuarioReceptor) {
     delete[] emisoresProcesados;
 }
 
-// Búsqueda por rango de fechas YYYYMMDD
 void Mensajeria::buscarporFecha(const string& usuarioReceptor, long fechaInicio, long fechaFin) {
-    cout << "\n--- HISTORIAL DE MENSAJES ENTRE: " << Fecha::longAFormatoHumano(fechaInicio)
-    << " Y " << Fecha::longAFormatoHumano(fechaFin) << " ---\n";
+    cout << "\n--- HISTORIAL DE MENSAJES ENTRE: " << Fecha::longAFormatoHumano(fechaInicio) << " Y " << Fecha::longAFormatoHumano(fechaFin) << " ---\n";
     cout << "--- PARA EL USUARIO: " << usuarioReceptor << " ---\n";
     int total = bandejaMensajes.obtenerTamano();
     int encontrados = 0;
@@ -223,27 +206,21 @@ void Mensajeria::buscarporFecha(const string& usuarioReceptor, long fechaInicio,
         if ((msg->getReceptor() == usuarioReceptor || msg->getEmisor() == usuarioReceptor) &&
             timestamp >= fechaInicio && timestamp <= fechaFin) {
 
-            cout << " [" << Fecha::longAFormatoHumano(timestamp) << "] ";
-            if (msg->getEmisor() == usuarioReceptor) {
-                cout << "(Enviado a " << msg->getReceptor() << "): ";
-            } else {
-                cout << "(Recibido de " << msg->getEmisor() << "): ";
-            }
-            cout << msg->getTexto() << "\n";
+            string rol = (msg->getEmisor() == usuarioReceptor) ? "Enviado a [" + msg->getReceptor() + "]" : "Recibido de [" + msg->getEmisor() + "]";
+            cout << rol << " | Fecha: "
+                 << Fecha::longAFormatoHumano(timestamp) << ". Mensaje : " << msg->getTexto() << "\n";
             encontrados++;
         }
     }
-
     if (encontrados == 0) {
         cout << "No se encontraron mensajes registrados en ese rango de fechas.\n";
     }
 }
 
-// Guardar en archivo
-bool Mensajeria::guardarMensajesEnArchivo(const string& rutaArchivo) {
-    ofstream archivo(rutaArchivo.c_str());
+bool Mensajeria::guardarMensajesEnArchivo(const std::string& rutaArchivo) {
+    std::ofstream archivo(rutaArchivo.c_str());
     if (!archivo.is_open()) {
-        cerr << "Error: No se pudo crear el archivo de mensajes.\n";
+        std::cerr << "Error: No se pudo crear el archivo de mensajes.\n";
         return false;
     }
 
