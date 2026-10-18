@@ -23,6 +23,9 @@ SistemaUdeABook::~SistemaUdeABook() {
 void SistemaUdeABook::cargarBaseDeDatos() {
     RastreadorMemoria::IniciarSegmento("RedSocial.h, <fstream>, <sstream>");
 
+    cout << "Cargando datos del sistema UdeABook desde archivos planos...\n";
+
+    // Cargar usuarios y red de relaciones
     cout << "Cargando datos del sistema UdeABook...\n";
 
     red.cargarUsuariosDesdeArchivo("usuarios.txt");

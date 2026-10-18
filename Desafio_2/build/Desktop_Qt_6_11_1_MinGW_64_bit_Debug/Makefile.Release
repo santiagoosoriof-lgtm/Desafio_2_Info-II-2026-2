@@ -182,6 +182,7 @@ release/album.o: ../../album.cpp ../../album.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\album.o ..\..\album.cpp
 
 release/fecha.o: ../../fecha.cpp ../../fecha.h \
+release/fecha.o: ../../fecha.cpp ../../fecha.h \
 		../../RastreadorMemoria.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\fecha.o ..\..\fecha.cpp
 

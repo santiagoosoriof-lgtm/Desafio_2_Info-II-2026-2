@@ -1,13 +1,9 @@
-#pragma once
+#ifndef SISTEMAUDEABOOK_H
+#define SISTEMAUDEABOOK_H
 
-#include <iostream>
-#include <string>
 #include "RedSocial.h"
 #include "Usuario.h"
-#include "album.h"
-#include "foto.h"
 #include "mensajeria.h"
-#include "RastreadorMemoria.h"
 
 class SistemaUdeABook {
 private:
@@ -15,7 +11,7 @@ private:
     Usuario* usuarioActivo;
     Mensajeria* gestorMensajeria;
 
-    // Métodos privados para cada submenú
+    void cargarBaseDeDatos();
     void mostrarMejoresAmigos();
     void menuAdministrarAmistades();
     void menuVisitarPerfilAmigo();
@@ -26,6 +22,7 @@ public:
     SistemaUdeABook(int capacidadRed = 1000);
     ~SistemaUdeABook();
 
-    void cargarBaseDeDatos();
     void iniciar();
 };
+
+#endif // SISTEMAUDEABOOK_H
