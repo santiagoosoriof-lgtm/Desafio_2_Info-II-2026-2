@@ -3,6 +3,7 @@
 #include <string>
 #include "ListaDinamica.h"
 #include "Usuario.h"
+#include "album.h"
 
 class RedSocial {
 private:
@@ -31,7 +32,8 @@ public:
     bool cargarSolicitudesDesdeArchivo(const std::string& rutaArchivo);
     bool guardarSolicitudesEnArchivo(const std::string& rutaArchivo);
     bool guardarRelacionesEnArchivo(const std::string& rutaArchivo);
-
+    bool cargarAlbumesDesdeArchivo(const std::string& rutaArchivo);
+    bool guardarAlbumesEnArchivo(const std::string& rutaArchivo);
 
     size_t getMemoria() const;
     static const char* getLibreriasUsadas();

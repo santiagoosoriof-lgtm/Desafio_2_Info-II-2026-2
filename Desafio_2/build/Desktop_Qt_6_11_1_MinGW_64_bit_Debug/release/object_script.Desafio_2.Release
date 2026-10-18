@@ -1,3 +1,4 @@
+release/Generador.o
 release/RastreadorMemoria.o
 release/SistemaUdeABook.o
 release/album.o

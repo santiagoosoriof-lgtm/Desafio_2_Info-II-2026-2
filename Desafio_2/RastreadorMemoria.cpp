@@ -4,7 +4,7 @@
 using namespace std;
 
 // Inicialización de variables estáticas
-long RastreadorMemoria::iteracionesTotales = 0;
+size_t RastreadorMemoria::iteracionesTotales = 0;
 size_t RastreadorMemoria::memoriaAsignadaBytes = 0;
 string RastreadorMemoria::libreriasEjecutadas = "";
 

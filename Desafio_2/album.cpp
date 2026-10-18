@@ -21,10 +21,16 @@ Album::Album(std::string nombre, std::string rutaRaiz, std::string privacidad){
 
 Album::~Album(){
     int totalFotos = fotos.obtenerTamano();
+
     for (int i = 0; i < totalFotos; i++) {
-        delete fotos.obtener(i); // Libera la memoria de cada objeto Foto
+        Foto* ft = fotos.obtener(i);
+        if (ft != nullptr) {
+            RastreadorMemoria::RegistroLiberacionMemoria(ft->getMemoria());
+            delete ft;
+        }
     }
     fotos.limpiar(); // Limpia los nodos de la lista dinámica
+    RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
 }
 
 //Getters y setters
