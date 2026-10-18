@@ -1,3 +1,4 @@
+debug/Generador.o
 debug/RastreadorMemoria.o
 debug/SistemaUdeABook.o
 debug/album.o

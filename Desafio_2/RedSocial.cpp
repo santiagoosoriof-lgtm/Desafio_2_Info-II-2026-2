@@ -1,17 +1,18 @@
 #include "RedSocial.h"
 #include "RastreadorMemoria.h"
+#include "fecha.h"
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
 
-// Constructor: Ya no crea la matriz de un millon de ceros en RAM
+
 RedSocial::RedSocial(int capacidad) : capacidadMaxima(capacidad) {
     this->bytesOcupados = sizeof(RedSocial);
     RastreadorMemoria::RegistroAsignacionMemoria(this->bytesOcupados);
 }
 
-// Destructor: Libera los usuarios sin necesidad de destruir matrices dinamicas pesadas
+
 RedSocial::~RedSocial() {
     RastreadorMemoria::RegistroLiberacionMemoria(this->bytesOcupados);
 
@@ -345,6 +346,91 @@ bool RedSocial::guardarRelacionesEnArchivo(const std::string& rutaArchivo) {
             }
         }
     }
+    archivo.close();
+    return true;
+}
+
+
+bool RedSocial::cargarAlbumesDesdeArchivo(const std::string& rutaArchivo) {
+    std::ifstream archivo(rutaArchivo);
+    if (!archivo.is_open()) {
+        std::cerr << "Error: No se pudo abrir el archivo " << rutaArchivo << std::endl;
+        return false;
+    }
+
+    std::string linea;
+    while (std::getline(archivo, linea)) {
+        RastreadorMemoria::RegistroIteracion();
+        if (linea.empty()) continue;
+
+        std::stringstream ss(linea);
+        std::string username, nombreAlb, privacidad, rutaRaiz;
+
+        // se extrae la info del album
+        std::getline(ss, username, ';');
+        std::getline(ss, nombreAlb, ';');
+        std::getline(ss, privacidad, ';');
+        std::getline(ss, rutaRaiz, ';');
+
+        // buscamos el dueño del album
+        Usuario* dueno = buscarUsuario(username);
+        if (dueno == nullptr) continue;
+
+        // Gardamos el album en memoria
+        Album* nuevoAlbum = new Album(nombreAlb, rutaRaiz, privacidad);
+        RastreadorMemoria::RegistroAsignacionMemoria(nuevoAlbum->getMemoria());
+
+        // Extraemos las fotos del album
+        std::string fotoPaquete;
+        while (std::getline(ss, fotoPaquete, ';')) {
+            if (fotoPaquete.empty()) continue;
+
+            std::stringstream ssFoto(fotoPaquete);
+            std::string nombreArchivo, fechaStr, pesoStr, likesStr;
+
+            // obtenemos los atributos de las fotos
+            std::getline(ssFoto, nombreArchivo, '|');
+            std::getline(ssFoto, fechaStr, '|');
+            std::getline(ssFoto, pesoStr, '|');
+            std::getline(ssFoto, likesStr, '|');
+
+
+            int pesoBytes = 0;
+            size_t k = 0;
+
+            while (k < pesoStr.length() ) {
+                RastreadorMemoria::RegistroIteracion();
+                if (pesoStr[k] >= '0' && pesoStr[k] <= '9') {
+                    pesoBytes = pesoBytes * 10 + (pesoStr[k] - '0');
+                }
+                k++;
+            }
+
+            int cantidadLikes = 0;
+            size_t m = 0;
+            while (m < likesStr.length()) {
+                cantidadLikes = cantidadLikes * 10 + (likesStr[m] - '0');
+                m++;
+            }
+
+            // creamos las fotos en memoria
+            Foto* nuevaFoto = new Foto(fechaStr, rutaRaiz + nombreArchivo, pesoBytes);
+
+            // se ponen los likes guardados a cada foto
+            for (int l = 0; l < cantidadLikes; l++) {
+                nuevaFoto->setLike();
+            }
+
+            RastreadorMemoria::RegistroAsignacionMemoria(nuevaFoto->getMemoria());
+
+            // Agregamos la foto al album
+            nuevoAlbum->agregarFoto(nuevaFoto);
+        }
+
+        // se agrega el album al usuario
+        dueno->getAlbumes().agregarAlFinal(nuevoAlbum);
+    }
+
     archivo.close();
     return true;
 }

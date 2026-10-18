@@ -20,79 +20,16 @@ SistemaUdeABook::~SistemaUdeABook() {
     delete gestorMensajeria;
 }
 
-// Generador auxiliar de dataset masivo
-void generarDatasetMasivo1000() {
-    ifstream fCheck("usuarios.txt");
-    bool necesitaGenerar = false;
-
-    if (!fCheck.is_open()) {
-        necesitaGenerar = true;
-    } else {
-        int lineas = 0;
-        string l;
-        while (getline(fCheck, l)) lineas++;
-        fCheck.close();
-        if (lineas < 1000) necesitaGenerar = true;
-    }
-
-    if (necesitaGenerar) {
-        cout << "Generando dataset masivo de 1,000 usuarios y archivos planos...\n";
-
-        // 1. Crear usuarios.txt
-        ofstream fUser("usuarios.txt");
-        for (int i = 0; i < 1000; i++) {
-            fUser << "user_" << i << ";2000-01-01;user" << i << "@udea.edu.co;/users/udeabook/user_" << i
-                  << "/albums/profile.png;Medellin;Colombia;2024-01-01\n";
-        }
-        fUser.close();
-
-        // 2. Crear relaciones.txt
-        ofstream fRel("relaciones.txt");
-        for (int i = 0; i < 1000; i++) {
-            int numAmigos = 5 + (rand() % 10);
-            for (int a = 0; a < numAmigos; a++) {
-                int amigoIdx = rand() % 1000;
-                if (amigoIdx != i) {
-                    fRel << "user_" << i << ";user_" << amigoIdx << "\n";
-                }
-            }
-        }
-        fRel.close();
-
-        // 3. Crear solicitudes.txt
-        ofstream fSol("solicitudes.txt");
-        if (fSol.is_open()) {
-            fSol << "user_1;user_0\n";
-            fSol << "user_2;user_0\n";
-            fSol.close();
-        }
-
-        // 4. Crear Galerias.txt
-        ofstream fGal("Galerias.txt");
-        if (fGal.is_open()) {
-            fGal << "user_0;Vacaciones;Publico;/users/udeabook/user_0/albums/Vacaciones/playa.png;2026-10-01;1024;5\n";
-            fGal << "user_0;Vacaciones;Publico;/users/udeabook/user_0/albums/Vacaciones/hotel.png;2026-10-02;2048;12\n";
-            fGal.close();
-        }
-
-        // 5. Crear Mensajes.txt
-        ofstream fMsn("Mensajes.txt");
-        if (fMsn.is_open()) {
-            fMsn << "user_1;user_0;Hola user_0, bienvenido a UdeABook!;20261010;0\n";
-            fMsn.close();
-        }
-
-        cout << "¡Dataset masivo de 1,000 usuarios y los 5 archivos planos creados exitosamente!\n";
-    }
-}
-
 void SistemaUdeABook::cargarBaseDeDatos() {
     RastreadorMemoria::IniciarSegmento("RedSocial.h, <fstream>, <sstream>");
 
     cout << "Cargando datos del sistema UdeABook...\n";
-    generarDatasetMasivo1000(); // Revisa y genera los 5 archivos si faltan
+
     red.cargarUsuariosDesdeArchivo("usuarios.txt");
     red.cargarRelacionesDesdeArchivo("relaciones.txt");
+    red.cargarSolicitudesDesdeArchivo("solicitudes.txt");
+    red.cargarAlbumesDesdeArchivo("albumes.txt");
+
     if (gestorMensajeria != nullptr) {
         gestorMensajeria->cargarArchivoMensajes("Mensajes.txt");
     }
@@ -236,10 +173,14 @@ void SistemaUdeABook::menuAdministrarAmistades() {
             red.registrarAmistad(usuarioActivo->getUsername(), solicitanteElegido->getUsername());
             cout << "\n Ahora eres amigo de " << solicitanteElegido->getUsername() << ".\n";
             pendientes.eliminar(indiceElegido);
+            red.guardarSolicitudesEnArchivo("solicitudes.txt");
+            red.guardarRelacionesEnArchivo("relaciones.txt");
+
         }
         else if (decision == 2) {
             pendientes.eliminar(indiceElegido);
             cout << "\nSolicitud de " << solicitanteElegido->getUsername() << " rechazada exitosamente.\n";
+            red.guardarSolicitudesEnArchivo("solicitudes.txt");
         }
         else {
             cout << "Regresando al menu...\n";
@@ -444,19 +385,25 @@ void SistemaUdeABook::menuAdministrarMensajes() {
 void SistemaUdeABook::iniciar() {
     cargarBaseDeDatos();
 
+    do{
     string username;
     cout << "\n==================================================\n";
     cout << "          BIENVENIDO A LA RED UdeABook           \n";
     cout << "==================================================\n";
-    cout << "Ingrese su username para iniciar sesion: ";
+    cout << "Ingrese su username para iniciar sesion o presione S para salir: ";
     cin >> username;
 
     usuarioActivo = red.buscarUsuario(username);
 
-    if (usuarioActivo == nullptr) {
-        cout << "Error: Usuario no registrado en la plataforma.\n";
+    if (username == "s" || username == "S") {
+        cout << "Hasta pronto.\n";
         return;
-    }
+    }else if(usuarioActivo == nullptr){
+        cout << "\nError: Usuario no registrado en la plataforma.\n";
+        cout << "\nIntente nuevamente o presione S para salir\n";
+        }
+    RastreadorMemoria::RegistroIteracion();
+    }while(usuarioActivo == nullptr);
 
     char opcion = ' ';
     while (opcion != 'S' && opcion != 's') {
@@ -488,6 +435,7 @@ void SistemaUdeABook::iniciar() {
             if (gestorMensajeria != nullptr) {
                 gestorMensajeria->guardarMensajesEnArchivo("Mensajes.txt");
             }
+            red.guardarSolicitudesEnArchivo("solicitudes.txt");
             cout << "\nCerrando sesion en UdeABook... Hasta pronto\n";
         } else {
             cout << "Opcion invalida. Intente de nuevo.\n";

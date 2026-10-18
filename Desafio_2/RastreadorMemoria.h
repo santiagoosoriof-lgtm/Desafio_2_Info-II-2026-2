@@ -5,7 +5,7 @@
 
 class RastreadorMemoria {
 private:
-    static long iteracionesTotales;
+    static size_t iteracionesTotales;
     static size_t memoriaAsignadaBytes;
     static std::string libreriasEjecutadas; // Almacena el listado de dependencias activas
 
