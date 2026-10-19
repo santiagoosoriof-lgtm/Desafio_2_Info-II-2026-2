@@ -194,14 +194,15 @@ debug/RedSocial.o: ../../RedSocial.cpp ../../RedSocial.h \
 		../../Usuario.h \
 		../../mensaje.h \
 		../../album.h \
-		../../foto.h \
-		../../fecha.h
+		../../foto.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\RedSocial.o ..\..\RedSocial.cpp
 
 debug/Usuario.o: ../../Usuario.cpp ../../Usuario.h \
 		../../ListaDinamica.h \
 		../../RastreadorMemoria.h \
-		../../mensaje.h
+		../../mensaje.h \
+		../../album.h \
+		../../foto.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\Usuario.o ..\..\Usuario.cpp
 
 debug/main.o: ../../main.cpp ../../RedSocial.h \

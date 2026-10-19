@@ -1,7 +1,11 @@
-user_1;user_0;Hola user_0, ¿vamos a estudiar en la UdeA?;20261012;0
-user_1;user_0;Recuerda llevar impreso el informe del Hito 2;20261013;0
-user_2;user_0;¿A que hora es la sustentacion con Anibal?;20261010;1
+user_1;user_0;Hola user_0, ¿vamos a estudiar en la UdeA?;20261005;0
+user_1;user_0;Recuerda llevar impreso el informe del Hito 2;20261007;0
+user_0;user_1;¿A que hora es la sustentacion con Anibal?;20261010;1
 user_0;user_1;¡Hola! Si, salgo para la Universidad en 10 minutos;20261014;1
+user_1;user_0;Hola user_0, ¿vamos a estudiar en la UdeA?;20260901;0
+user_1;user_0;Recuerda llevar impreso el informe del Hito 2;20260908;0
+user_0;user_1;¿A que hora es la sustentacion con Anibal?;20260915;1
+user_0;user_1;¡Hola! Si, salgo para la Universidad en 10 minutos;20260920;1
 user_250;user_741;Mensaje simulado numero 0 de prueba.;20260715;1
 user_813;user_181;Mensaje simulado numero 1 de prueba.;20261003;1
 user_255;user_310;Mensaje simulado numero 2 de prueba.;20260614;1

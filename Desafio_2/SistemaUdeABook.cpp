@@ -15,7 +15,11 @@ SistemaUdeABook::SistemaUdeABook(int capacidadRed) : red(capacidadRed), usuarioA
 }
 
 SistemaUdeABook::~SistemaUdeABook() {
-    delete gestorMensajeria;
+    // Liberamos la memoria que ocupa el objeto gestor de mensajeria
+    if (gestorMensajeria != nullptr) {
+        delete gestorMensajeria;
+        gestorMensajeria = nullptr;
+    }
 }
 
 void SistemaUdeABook::cargarBaseDeDatos() {
@@ -26,6 +30,7 @@ void SistemaUdeABook::cargarBaseDeDatos() {
     red.cargarUsuariosDesdeArchivo("usuarios.txt");
     red.cargarRelacionesDesdeArchivo("relaciones.txt");
     red.cargarSolicitudesDesdeArchivo("solicitudes.txt");
+    red.cargarAlbumesDesdeArchivo("albumes.txt");
 
     if (gestorMensajeria != nullptr) {
         gestorMensajeria->cargarArchivoMensajes("Mensajes.txt");
@@ -115,7 +120,7 @@ void SistemaUdeABook::menuAdministrarAmistades() {
                         cout << "[Aviso]: Ya le has enviado una solicitud de amistad a " << destinoUsername << " y esta pendiente.\n";
                     } else {
                         destinoUser->agregarSolicitud(usuarioActivo);
-                        cout << "¡Solicitud de Amistad enviada exitosamente a " << destinoUsername << "!\n";
+                        cout << "Solicitud de Amistad enviada exitosamente a " << destinoUsername << "!\n";
                         red.guardarSolicitudesEnArchivo("solicitudes.txt");
                     }
                 }
@@ -204,24 +209,23 @@ void SistemaUdeABook::menuVisitarPerfilAmigo() {
 
     RastreadorMemoria::IniciarSegmento(Album::getLibreriasUsadas());
 
-    string amigoUsername;
-    cout << "\nIngrese el username del amigo a visitar: ";
-    cin >> amigoUsername;
+    string usuarioUsername;
+    cout << "\nIngrese el username del usuario a visitar: ";
+    cin >> usuarioUsername;
 
-    if (!red.sonAmigos(usuarioActivo->getUsername(), amigoUsername)) {
-        cout << "Error: Solo puedes visitar perfiles de usuarios que sean tus amigos.\n";
+    Usuario* usuarioDestino = red.buscarUsuario(usuarioUsername);
+    if (usuarioDestino == nullptr) {
+        cout << "Error: El usuario no existe en la plataforma.\n";
         RastreadorMemoria::ReporteEficiencia();
-        return;
-    }
+        return;}
 
-    Usuario* amigo = red.buscarUsuario(amigoUsername);
-    if (amigo == nullptr) return;
+    bool esAmigo = red.sonAmigos(usuarioActivo->getUsername(), usuarioDestino->getUsername());
 
     cout << "\n==================================================\n";
-    cout << "           PERFIL DE: " << amigo->getUsername() << "\n";
+    cout << "           PERFIL DE: " << usuarioDestino->getUsername() << "\n";
     cout << "==================================================\n";
 
-    int totalAlbumes = amigo->getCantidadAlbums();
+    int totalAlbumes = usuarioDestino->getCantidadAlbums();
 
     if (totalAlbumes == 0) {
         cout << " [Aviso]: Este amigo aun no tiene albumes creados.\n";
@@ -233,7 +237,7 @@ void SistemaUdeABook::menuVisitarPerfilAmigo() {
     cout << " -> Este usuario tiene " << totalAlbumes << " album(es) registrado(s).\n\n";
     for (int i = 0; i < totalAlbumes; i++) {
         RastreadorMemoria::RegistroIteracion();
-        Album* alb = amigo->getAlbumes().obtener(i);
+        Album* alb = usuarioDestino->getAlbumes().obtener(i);
         cout << "   [" << (i + 1) << "] " << alb->getNombre()
              << " (" << alb->cantidadFotos() << " fotos) - [" << alb->getPrivacidad() << "]\n";
     }
@@ -258,16 +262,28 @@ void SistemaUdeABook::menuVisitarPerfilAmigo() {
         return;
     }
 
-    Album* albumSeleccionado = amigo->getAlbumes().obtener(seleccion - 1);
-    if (albumSeleccionado->getPrivacidad() == "Privado") {
+    Album* albumSeleccionado = usuarioDestino->getAlbumes().obtener(seleccion - 1);
+    std::string privacidad = albumSeleccionado->getPrivacidad(); //obtenemos privacidad
+
+
+    if (privacidad == "Privado") {
         cout << "El album seleccionado es privado.\n";
     } else {
         if (albumSeleccionado->cantidadFotos() == 0) {
             cout << "\n[Aviso]: El album '" << albumSeleccionado->getNombre() << "' esta vacio.\n";
             RastreadorMemoria::ReporteEficiencia();
             return;
+        }else if(privacidad == "Amigos" && !esAmigo){
+        cout << "Este album solo es visible para los amigos de " << usuarioDestino->getUsername() << ".\n";
+        RastreadorMemoria::ReporteEficiencia();
+        return;
+    }else {
+        // Si el album es "Publico" o si es de "Amigos"
+        if (albumSeleccionado->cantidadFotos() == 0) {
+            cout << "\n[Aviso]: El album '" << albumSeleccionado->getNombre() << "' esta vacio.\n";
+            RastreadorMemoria::ReporteEficiencia();
+            return;
         }
-
         char controlCarrusel = ' ';
         while (controlCarrusel != 'M' && controlCarrusel != 'm') {
             RastreadorMemoria::RegistroIteracion();
@@ -278,7 +294,7 @@ void SistemaUdeABook::menuVisitarPerfilAmigo() {
             cout << " ALBUM: " << albumSeleccionado->getNombre() << " (Visualizando contenido)\n";
             cout << "--------------------------------------------------\n";
             cout << " -> Ruta Logica Linux: " << fotoActual->getRutaAbsoluta() << "\n";
-            cout << " -> Capturada el:      " << Fecha::longAFormatoHumano(Fecha::cadenaALongInvertido(fotoActual->getFechaCaptura())) << "\n";
+             cout << " -> Capturada el:      " << Fecha::longAFormatoHumano(Fecha::StringNumtoLong(fotoActual->getFechaCaptura())) << "\n";
             cout << " -> Likes actuales:    " << fotoActual->getLikes() << "\n";
             cout << "--------------------------------------------------\n";
             cout << " [A] Anterior  //  [S] Siguiente  //  [L] Dar Like  //  [U] Quitar Like  //  [M] Volver a Menu\n";
@@ -301,6 +317,8 @@ void SistemaUdeABook::menuVisitarPerfilAmigo() {
                 cout << "Accion no valida.\n";
             }
         }
+    red.guardarAlbumesEnArchivo("albumes.txt");
+    }
 
         cout << "\nCerrando galeria multimedia...\n";
         RastreadorMemoria::ReporteEficiencia();
@@ -369,6 +387,7 @@ void SistemaUdeABook::menuAdministrarMensajes() {
             string destinatario, texto;
             cout << "Destinatario (username): ";
             cin >> destinatario;
+            cout << "si el texto es mayor a 512 caracteres se cortara el mensaje hasta este tamanio maximo): \n";
             cout << "Texto (max 512 caracteres): ";
             cin.ignore();
             getline(cin, texto);
@@ -386,12 +405,14 @@ void SistemaUdeABook::menuAdministrarMensajes() {
                 long fechaHoy = Fecha::obtenerFechaActual();
                 gestorMensajeria->enviarMensaje(usuarioActivo, receptor, texto, fechaHoy);
                 cout << "Mensaje enviado exitosamente.\n";
-                gestorMensajeria->guardarMensajesEnArchivo("Mensajes.txt");
+                gestorMensajeria->guardarMensajesEnArchivo("mensajes.txt");
             }
         } else if (op == 2) {
             gestorMensajeria->getNuevosmsn(usuarioActivo->getUsername());
+            gestorMensajeria->guardarMensajesEnArchivo("mensajes.txt");
         } else if (op == 3) {
             gestorMensajeria->verBandejaCompleta(usuarioActivo->getUsername());
+            gestorMensajeria->guardarMensajesEnArchivo("mensajes.txt");
         } else if (op == 4) {
             string fIniciomsn, fFinmsn;
             cout << "Ingrese fecha de inicio (AAAA-MM-DD): ";
@@ -403,6 +424,7 @@ void SistemaUdeABook::menuAdministrarMensajes() {
             long fFin = Fecha::cadenaALongInvertido(fFinmsn);
 
             gestorMensajeria->buscarporFecha(usuarioActivo->getUsername(), fInicio, fFin);
+            gestorMensajeria->guardarMensajesEnArchivo("mensajes.txt");
         }
 
         RastreadorMemoria::ReporteEficiencia();
@@ -433,7 +455,7 @@ void SistemaUdeABook::iniciar() {
 
         cout << "\nMenu de opciones:\n";
         cout << " 1.- Administrar amistades\n";
-        cout << " 2.- Visitar perfil de un amigo\n";
+        cout << " 2.- Visitar perfil de un usuario\n";
         cout << " 3.- Ver sugerencias de amistad (Top-K)\n";
         cout << " 4.- Administrar mensajes\n";
         cout << "\n .- Ingrese 'N' o 'n' para alternar el grupo de fotos de perfil de amigos.\n";
@@ -458,6 +480,7 @@ void SistemaUdeABook::iniciar() {
             }
             red.guardarRelacionesEnArchivo("relaciones.txt");
             red.guardarSolicitudesEnArchivo("solicitudes.txt");
+            red.guardarAlbumesEnArchivo("albumes.txt");
             cout << "\nCerrando sesion en UdeABook... ¡Hasta pronto!\n";
         } else {
             cout << "Opcion invalida. Intente de nuevo.\n";

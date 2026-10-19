@@ -81,10 +81,14 @@ void generarDatasetMasivo1000() {
         ofstream fMsn("mensajes.txt");
         if (fMsn.is_open()) {
             // Caso de prueba para user_0
-            fMsn << "user_1;user_0;Hola user_0, ¿vamos a estudiar en la UdeA?;20261012;0\n";
-            fMsn << "user_1;user_0;Recuerda llevar impreso el informe del Hito 2;20261013;0\n";
-            fMsn << "user_2;user_0;¿A que hora es la sustentacion con Anibal?;20261010;1\n";
+            fMsn << "user_1;user_0;Hola user_0, ¿vamos a estudiar en la UdeA?;20261005;0\n";
+            fMsn << "user_1;user_0;Recuerda llevar impreso el informe del Hito 2;20261007;0\n";
+            fMsn << "user_0;user_1;¿A que hora es la sustentacion con Anibal?;20261010;1\n";
             fMsn << "user_0;user_1;¡Hola! Si, salgo para la Universidad en 10 minutos;20261014;1\n";
+            fMsn << "user_1;user_0;Hola user_0, ¿vamos a estudiar en la UdeA?;20260901;0\n";
+            fMsn << "user_1;user_0;Recuerda llevar impreso el informe del Hito 2;20260908;0\n";
+            fMsn << "user_0;user_1;¿A que hora es la sustentacion con Anibal?;20260915;1\n";
+            fMsn << "user_0;user_1;¡Hola! Si, salgo para la Universidad en 10 minutos;20260920;1\n";
 
             // (1000 interacciones)
             for (int i = 0; i < 1000; i++) {
